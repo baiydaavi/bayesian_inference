@@ -8,8 +8,12 @@ the cosmological parameters.
 import numpy as np
 import pandas as pd
 
+# here is a stand-in for the mu_modell function we will eventually want. 
+# We should only have to replace this line of code (kyle)
+from temporary_functions import dummy_mu as mu_model
 
-def prior(params, magnitude_mode):
+#made the default uniform, just for easier inputs when testing (kyle)
+def prior(params, magnitude_mode='uniform'):
 
     """ This function calculates the prior.
 
@@ -41,8 +45,8 @@ def prior(params, magnitude_mode):
     else:
         return np.exp(-0.5 * pow((params[3] - 19.23) / 0.042, 2))
 
-
-def likelihood(params, mu_model, data_lcparam, sys_error, include_sys_error):
+# made default include_sys_error=False (kyle)
+def likelihood(params, data_lcparam, include_sys_error=False):
 
     """This function calculates the likelihood.
 
@@ -60,6 +64,8 @@ def likelihood(params, mu_model, data_lcparam, sys_error, include_sys_error):
     systematic error is included (value -> 'True') or excluded 
     (value -> 'False') from the covariance matrix calculation.
     """
+
+
 
     # Importing an array of size 40 that contains the apparent
     # magnitude data.
@@ -86,6 +92,13 @@ def likelihood(params, mu_model, data_lcparam, sys_error, include_sys_error):
     # matrix calculation.
 
     else:
+        # since the systematic error matrix is only going to be used here, I thought we could hardcore it into
+        # the function. I dont think this costs any overhead, but am not sure. It does make it integrate
+        # into the rest of the pipeline more smoothly though.
+        data_sys = pd.read_csv("sys_DS17f.txt", sep=" ")
+        data_sys.columns = ["sys_error"]
+        sys_error = np.reshape(pd.Series.to_numpy(data_sys.sys_error), (40, 40))
+
         inv_cov_matrix = np.linalg.inv(stat_error + sys_error)
 
     return np.exp(-0.5 * (diff_app_mag @ inv_cov_matrix @ diff_app_mag))
