@@ -15,14 +15,14 @@ def prior(params, magnitude_mode):
 
     Parameter:
     1. params - This is a list of the 4 cosmological parameters
-    omega_m, omega_h, H_0 and M.
+    omega_m, omega_lambda, H_0 and M.
     2. magnitude_mode - This parameter decides whether the prior
     on M (absolute magnitude) is 'uniform' or 'gaussian'.
 
-    omega_m, omega_h and H_0 cannot take negative values therefore
+    omega_m, omega_lambda and H_0 cannot take negative values therefore
     we choose the prior probability to be 0 when at least one of 
     the three parameters goes negative. For any non-negative values
-    of omega_m, omega_h, and H_0, we choose a uniform prior probabiility.
+    of omega_m, omega_lambda, and H_0, we choose a uniform prior probabiility.
     """
 
     # Prior is 0 if omega_m,omega_h, H_0 are negative.
