@@ -14,8 +14,6 @@ from scipy import integrate
 
 def calculate_apparent_mag(params, SNdata):
     '''
-    Parameters
-    ----------
     Computes apparent magnitudes for an array of observed SN by using their 
     redshift data along with assumed cosmology parameters to compute a 
     luminosity distance for each SN, after which it is converted into a 
@@ -40,7 +38,9 @@ def calculate_apparent_mag(params, SNdata):
     in calculating the distance modulus, we input c in units of [km/s] 
     and H0 in units of [km/s/pc]. The value of c is hard-coded in while
     H0 is multiplied by 10^-6 to convert from [km/s/Mpc] to [km/s/pc].
-
+    
+    Parameters
+    ----------
     params: array of 4 input parameters based on our assumed LambdaCDM-K
             cosmology model (in order)
             OmegaM: energy density of matter [dimensionless]
