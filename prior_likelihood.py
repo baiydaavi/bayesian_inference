@@ -45,15 +45,7 @@ def prior(params, magnitude_mode='uniform'):
     else:
         return np.exp(-0.5 * pow((params[3] - 19.23) / 0.042, 2))
 
-# since the systematic error matrix is only going to be used here, I thought we could hardcore it into
-# the function. I dont think this costs any overhead, but am not sure. It does make it integrate
-# into the rest of the pipeline more smoothly though.
-data_sys = pd.read_csv("sys_DS17f.txt", sep=" ")
-data_sys.columns = ["sys_error"]
-Sys_error_data = np.reshape(pd.Series.to_numpy(data_sys.sys_error), (40, 40))
-
-# made default include_sys_error=False (kyle)
-def likelihood(params, data_lcparam, include_sys_error=False, sys_error=Sys_error_data):
+def likelihood(params, data_lcparam, sys_error=None):
 
     """This function calculates the likelihood.
 
@@ -92,7 +84,7 @@ def likelihood(params, data_lcparam, include_sys_error=False, sys_error=Sys_erro
     # Only include the statistical error in the covariance
     # matrix calculation
 
-    if include_sys_error == "False":
+    if sys_error is None:
         inv_cov_matrix = np.linalg.inv(stat_error)
 
     # Include the systematic error as well in the covariance
