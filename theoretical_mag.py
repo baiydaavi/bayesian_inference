@@ -65,20 +65,20 @@ def calculate_apparent_mag(params, SNdata):
     OmegaK = 1 - params[0] - params[1]    # based on sum(Omega_i) = 1
     
     # looping over each SN in the dataset
-    for i in range(0, len(SNdata['col2'])):
+    for i in range(0, len(SNdata['zhel'])):
         
         f = lambda x: ((params[0]*((1+x)**3)) + (params[1]) + \
                       (OmegaK*((1+x)**2)))**-0.5
-        eta, etaerr = integrate.quad(f, 0.0, SNdata['col2'][i])
+        eta, etaerr = integrate.quad(f, 0.0, SNdata['zhel'][i])
         
         # note here that dL ends up being in units of pc
         if OmegaK == 0.0:
-            dL = (c*(1+SNdata['col2'][i])/(params[2]*(10**-6))) * eta  
+            dL = (c*(1+SNdata['zhel'][i])/(params[2]*(10**-6))) * eta  
         elif OmegaK > 0.0:
-            dL = (c*(1+SNdata['col2'][i])/(params[2]*(10**-6))) * (1/math.sqrt(abs(OmegaK))) \
+            dL = (c*(1+SNdata['zhel'][i])/(params[2]*(10**-6))) * (1/math.sqrt(abs(OmegaK))) \
                  * math.sin(math.sqrt(abs(OmegaK)) * eta)
         elif OmegaK < 0.0:
-            dL = (c*(1+SNdata['col2'][i])/(params[2]*(10**-6))) *(1/math.sqrt(abs(OmegaK))) \
+            dL = (c*(1+SNdata['zhel'][i])/(params[2]*(10**-6))) *(1/math.sqrt(abs(OmegaK))) \
                  * math.sinh(math.sqrt(abs(OmegaK)) * eta)
         
         apparent_mags[i] = 5*math.log10(dL/10.0) + params[3]
