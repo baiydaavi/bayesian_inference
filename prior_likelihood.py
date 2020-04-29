@@ -26,9 +26,9 @@ def prior(params, magnitude_mode="uniform"):
     omega_m, omega_lambda and H_0 cannot take negative values therefore
     we choose the prior probability to be 0 when at least one of 
     the three parameters goes negative( or when omega_m and/or 
-    omega_lambda gets higher than 1 - not sure about this). For any 
-    other values of omega_m, omega_lambda, and H_0, we choose a uniform 
-    prior probabiility.
+    omega_lambda gets higher than 2.5). For any other values of 
+    omega_m, omega_lambda, and H_0, we choose a uniform prior 
+    probabiility.
     """
 
     # Prior is 0 if omega_m and/or omega_lambda and/or H_0 are negative.
@@ -36,10 +36,10 @@ def prior(params, magnitude_mode="uniform"):
     if any(i < 0 for i in params[0:-1]):
         return 0
 
-    # Prior is 0 if omega_m and/or omega_lambda are greater than 1.
+    # Prior is 0 if omega_m and/or omega_lambda are greater than 2.5.
 
-    # if any(i > 1 for i in params[0:2]):
-    #    return 0
+    if any(i > 2.5 for i in params[0:2]):
+        return 0
 
     # Uniform prior on M
 
@@ -77,8 +77,8 @@ def likelihood(params, data_lcparam, sys_error=None):
 
     app_mag = pd.Series.to_numpy(data_lcparam.mb)
 
-    # Calculating the difference between the measured and
-    # estimated apparent magnitude.
+    # Calculating the difference between the measured (app_mag)
+    # and estimated apparent magnitude (mag_model).
 
     diff_app_mag = app_mag - mag_model
 
