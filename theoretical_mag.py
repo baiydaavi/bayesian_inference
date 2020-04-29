@@ -21,9 +21,14 @@ def calculate_apparent_mag(params, SNdata):
     luminosity distance for each SN, after which it is converted into a 
     distance modulus and combined with an input absolute magnitude to finally
     ouput apparent magnitudes.
+    
+    All calculations of luminosity distances and distance moduli done here
+    are based on equations (9) and (10) from the Scolnic et al. 2018 paper. 
 
     Note that for calculating luminosity distance we use the following
-    relations based on curvature:
+    relations based on curvature. These relations have been derived from
+    equations (9) and (10) from Scolnic et al. 2018, by taking the appropriate
+    limits for positive, negative, and zero curvature cases:
     For k = 0: dL = (c(1+z)/H0)*(int^z_0 dz/E(z))
     For k > 0: dL = (c(1+z)/H0)*(1/sqrt(abs(OmegaK))) \
                     *sin(sqrt(abs(OmegaK))*(int^z_0 dz/E(z)))
