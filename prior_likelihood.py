@@ -10,7 +10,7 @@ import pandas as pd
 
 # here is a stand-in for the apparent_mag function we will eventually want.
 # We should only have to replace this line of code (kyle)
-from temporary_functions import dummy_mu as mag_model
+from theoretical_mag import calculate_apparent_mag as mag_model
 
 # made the default uniform, just for easier inputs when testing (kyle)
 def prior(params, magnitude_mode="uniform"):
@@ -80,7 +80,7 @@ def likelihood(params, data_lcparam, sys_error=None):
     # Calculating the difference between the measured (app_mag)
     # and estimated apparent magnitude (mag_model).
 
-    diff_app_mag = app_mag - mag_model
+    diff_app_mag = app_mag - mag_model(params, data_lcparam)
 
     # Defining a 40x40 diagonal matrix whose diagonal entries
     # are the square of the corresponding statistical error.
