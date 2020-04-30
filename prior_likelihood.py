@@ -50,7 +50,7 @@ def prior(params, magnitude_mode="uniform"):
     # M =19.23 +/- 0.042.
 
     else:
-        return np.exp(-0.5 * pow((params[3] - 19.23) / 0.042, 2))
+        return np.exp(-0.5 * pow((params[3] + 19.23) / 0.042, 2))
 
 
 def likelihood(params, data_lcparam, sys_error=None):
