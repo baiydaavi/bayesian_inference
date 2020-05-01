@@ -50,7 +50,7 @@ def prior(params, magnitude_mode="uniform"):
     # M =19.23 +/- 0.042.
 
     else:
-        return np.exp(-0.5 * pow((params[3] + 19.23) / 0.042, 2))
+        return -0.5 * pow((params[3] + 19.23) / 0.042, 2)
 
 
 def likelihood(params, data_lcparam, sys_error=None):
@@ -99,7 +99,7 @@ def likelihood(params, data_lcparam, sys_error=None):
     else:
         inv_cov_matrix = np.linalg.inv(stat_error + sys_error)
 
-    return np.exp(-0.5 * (diff_app_mag @ inv_cov_matrix @ diff_app_mag))
+    return -0.5 * (diff_app_mag @ inv_cov_matrix @ diff_app_mag)
 
 
 # data_lcparam = pd.read_csv("lcparam_DS17f.txt", sep=" ")
