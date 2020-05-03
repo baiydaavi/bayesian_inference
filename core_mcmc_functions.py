@@ -3,7 +3,7 @@ from prior_likelihood import prior
 from prior_likelihood import likelihood
 
 def metropolis(params, candidate_params, data, prior_func, likelihood_func, prior_mode = 'uniform'):  
-    if prior_func(candidate_params, magnitude_mode=prior_mode)==0:
+    if prior_func(candidate_params, magnitude_mode=prior_mode)=='forbidden':
         return False
 
     else:
