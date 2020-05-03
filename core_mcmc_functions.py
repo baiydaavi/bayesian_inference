@@ -72,3 +72,45 @@ def convergence_test(chain, convergence_window, convergence_threshhold):
                 return False, diff_booleans
         else:
             return False, []
+
+
+def asynchronous_chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=.001, start_state= np.ones(4)+1, variances=np.ones(4)/5,
+    prior_func=prior, likelihood_func=likelihood, prior_mode='uniform'):
+    '''
+    data is the data set
+    max_trials is to prevent it from taking too long if it gets stuck without convergence
+    convergence_window is how large a range it averages over for convergence
+    convergence_threshhold is the maximum allowed percent change for reaching convergence 
+    start_state is the initial values for all parameters: np array of length 4
+    variances is the variance for each generating gaussian: np array of length 4
+    likelihood and prior func are the functions for likelihood and prior
+    prior_mode is the prior mode
+    '''
+    chain=[]
+    current = start_state
+    i=0
+    convergence = False
+
+    while i < max_trials and convergence==False:
+
+        candidate = np.random.normal(current,variances)
+        i += 1
+
+        start_index = int(np.random.uniform(0,4))
+        for k in range(4):
+            j = (start_index+k)%4
+            temporary = np.copy(current)
+            temporary[j] = candidate[j]
+            if metropolis(current, temporary, data, prior_func, likelihood_func, prior_mode= prior_mode):
+                current = temporary
+
+        chain.append(current)
+        
+        convergence, diff_booleans = convergence_test(chain, convergence_window, convergence_threshhold)
+        
+
+    chn= np.asarray(chain)
+    print('total trials:{}'.format(i))
+    if convergence == False:
+        print('convergence failed. converged parameters:', diff_booleans)
+    return chn
