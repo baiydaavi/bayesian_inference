@@ -35,12 +35,22 @@ def prior(params, magnitude_mode="uniform"):
     # Prior is 0 if omega_m and/or omega_lambda and/or H_0 are negative.
 
     if any(i < 0 for i in params[0:-1]):
-        return -math.inf
+        return "forbidden"
 
     # Prior is 0 if omega_m and/or omega_lambda are greater than 2.5.
 
     if any(i > 2.5 for i in params[0:2]):
-        return -math.inf
+        return "forbidden"
+
+    z_max = 1.62
+
+    if (
+        params[0] * (1 + z_max) ** 3
+        + params[1]
+        + (1 - params[0] - params[1]) * (1 + z_max) ** 2
+        < 0
+    ):
+        return "forbidden"
 
     # Uniform prior on M
 
