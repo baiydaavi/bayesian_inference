@@ -29,9 +29,9 @@ def calculate_apparent_mag(params, SNdata):
     limits for positive, negative, and zero curvature cases:
     For k = 0: dL = (c(1+z)/H0)*(int^z_0 dz/E(z))
     For k > 0: dL = (c(1+z)/H0)*(1/sqrt(abs(OmegaK))) \
-                    *sin(sqrt(abs(OmegaK))*(int^z_0 dz/E(z)))
-    For k < 0: dL = (c(1+z)/H0)*(1/sqrt(abs(OmegaK))) \
                     *sinh(sqrt(abs(OmegaK))*(int^z_0 dz/E(z)))
+    For k < 0: dL = (c(1+z)/H0)*(1/sqrt(abs(OmegaK))) \
+                    *sin(sqrt(abs(OmegaK))*(int^z_0 dz/E(z)))
     Here E(z) = sqrt(OmegaM(1+z)^3 + OmegaLambda + OmegaK(1+z)^2)
 
     Also note that in order to get the final dL in units of [pc] for use
@@ -76,10 +76,10 @@ def calculate_apparent_mag(params, SNdata):
             dL = (c*(1+SNdata['zhel'][i])/(params[2]*(10**-6))) * eta  
         elif OmegaK > 0.0:
             dL = (c*(1+SNdata['zhel'][i])/(params[2]*(10**-6))) * (1/math.sqrt(abs(OmegaK))) \
-                 * math.sin(math.sqrt(abs(OmegaK)) * eta)
+                 * math.sinh(math.sqrt(abs(OmegaK)) * eta)
         elif OmegaK < 0.0:
             dL = (c*(1+SNdata['zhel'][i])/(params[2]*(10**-6))) *(1/math.sqrt(abs(OmegaK))) \
-                 * math.sinh(math.sqrt(abs(OmegaK)) * eta)
+                 * math.sin(math.sqrt(abs(OmegaK)) * eta)
         
         apparent_mags[i] = 5*math.log10(dL/10.0) + params[3]
     

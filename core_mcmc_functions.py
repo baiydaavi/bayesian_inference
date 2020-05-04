@@ -39,8 +39,22 @@ def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=
     current = start_state
     i=0
     convergence = False
+
+    if variances is None:
+        covariance = .1*np.array([
+            [.015, .024, .070, 0.0],
+            [.024, .048, .177, 0.0],
+            [.070, .177, 1, 0.0],
+            [0.0, 0.0, 0.0, 0.0]
+            ])
+    else:
+        if len(np.shape(variances)) == 1:
+            covariance = np.diag(variances)
+        if len(np.shape(variances)) == 2:
+            covariance = variances
+
     while convergence == False and i < max_trials:
-        candidate = np.random.normal(current,variances)
+        candidate = np.random.multivariate_normal(current, covariance)
         i += 1
         if metropolis(current, candidate, data, prior_func, likelihood_func, prior_mode= prior_mode):
             rejects.append(np.zeros(4)*np.nan)
@@ -73,7 +87,7 @@ def convergence_test(chain, convergence_window, convergence_threshhold):
         else:
             return False, []
 
-
+#ignore this function, it was just a weird test
 def asynchronous_chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=.001, start_state= np.ones(4)+1, variances=np.ones(4)/5,
     prior_func=prior, likelihood_func=likelihood, prior_mode='uniform'):
     '''
