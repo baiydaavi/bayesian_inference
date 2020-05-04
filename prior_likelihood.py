@@ -7,6 +7,7 @@ the cosmological parameters.
 
 import numpy as np
 import pandas as pd
+import math
 
 # here is a stand-in for the apparent_mag function we will eventually want.
 # We should only have to replace this line of code (kyle)
@@ -34,22 +35,27 @@ def prior(params, magnitude_mode="uniform"):
     # Prior is 0 if omega_m and/or omega_lambda and/or H_0 are negative.
 
     if any(i < 0 for i in params[0:-1]):
-        return 'forbidden'
+        return "forbidden"
 
     # Prior is 0 if omega_m and/or omega_lambda are greater than 2.5.
 
     if any(i > 2.5 for i in params[0:2]):
-        return 'forbidden'
+        return "forbidden"
 
     z_max = 1.62
 
-    if params[0]*(1+z_max)**3+params[1]+(1-params[0]-params[1])*(1+z_max)**2 < 0:
-        return 'forbidden'
+    if (
+        params[0] * (1 + z_max) ** 3
+        + params[1]
+        + (1 - params[0] - params[1]) * (1 + z_max) ** 2
+        < 0
+    ):
+        return "forbidden"
 
     # Uniform prior on M
 
     if magnitude_mode == "uniform":
-        return 1
+        return 0
 
     # Gaussian prior on corrected supernova absolute magnitude of
     # M =19.23 +/- 0.042.
