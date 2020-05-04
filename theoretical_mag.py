@@ -28,10 +28,15 @@ def calculate_apparent_mag(params, SNdata):
     equations (9) and (10) from Scolnic et al. 2018, by taking the appropriate
     limits for positive, negative, and zero curvature cases:
     For k = 0: dL = (c(1+z)/H0)*(int^z_0 dz/E(z))
+<<<<<<< HEAD
     For k < 0: dL = (c(1+z)/H0)*(1/sqrt(abs(OmegaK))) \
                     *sin(sqrt(abs(OmegaK))*(int^z_0 dz/E(z)))
+=======
+>>>>>>> ed677fa1424adfbd58963730d0b8b55372a755e0
     For k > 0: dL = (c(1+z)/H0)*(1/sqrt(abs(OmegaK))) \
                     *sinh(sqrt(abs(OmegaK))*(int^z_0 dz/E(z)))
+    For k < 0: dL = (c(1+z)/H0)*(1/sqrt(abs(OmegaK))) \
+                    *sin(sqrt(abs(OmegaK))*(int^z_0 dz/E(z)))
     Here E(z) = sqrt(OmegaM(1+z)^3 + OmegaLambda + OmegaK(1+z)^2)
 
     Also note that in order to get the final dL in units of [pc] for use
