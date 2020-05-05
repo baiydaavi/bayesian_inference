@@ -187,40 +187,6 @@ def convergence_test(chain, convergence_window, convergence_threshhold):
     else:
         return False, []
 
-#ignore this function, it was just a weird test there will be no documentation for it.
-def asynchronous_chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=.001, start_state= np.ones(4)+1, variances=np.ones(4)/5,
-    prior_func=prior, likelihood_func=likelihood, prior_mode='uniform'):
-
-    chain=[]
-    current = start_state
-    i=0
-    convergence = False
-
-    while i < max_trials and convergence==False:
-
-        candidate = np.random.normal(current,variances)
-        i += 1
-
-        start_index = int(np.random.uniform(0,4))
-        for k in range(4):
-            j = (start_index+k)%4
-            temporary = np.copy(current)
-            temporary[j] = candidate[j]
-            if metropolis(current, temporary, data, prior_func, likelihood_func, prior_mode= prior_mode):
-                current = temporary
-
-        chain.append(current)
-        
-        convergence, diff_booleans = convergence_test(chain, convergence_window, convergence_threshhold)
-        
-
-    chn= np.asarray(chain)
-    print('total trials:{}'.format(i))
-
-    if convergence == False:
-        print('convergence failed. converged parameters:', diff_booleans)
-    return chn
-
 
 def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_d_hist_2=1, two_d_hist_1=0, two_d_hist_2=1, one_d_bins=30, two_d_bins=50, two_d_histogram=True, save=False):
     '''
@@ -253,6 +219,10 @@ def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_
     td2 = two_d_hist_2
     names = dict([(0,'$\\Omega_m$'),(1,'$\\Omega_\\Lambda$'),(2,'$H_0$'),(3,'$M$')])
 
+    plt.rc('axes', titlesize=18)
+    plt.rc('axes', labelsize=18)
+    plt.rc('figure', titlesize=20)
+
     fig,ax = plt.subplots(3, 2, figsize=(20,15))
 
     hist_or_scatter = dict ([(True, 'histogram'), (False, 'scatter plot')])
@@ -276,19 +246,27 @@ def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_
         ax[1,1].plot(rejects[:,3], '+', alpha=rej_alpha)
 
     cutoff = int(len(chain[:,0])/5)
-    cchn = chain[cutoff:,:]    
+    cchn = chain[cutoff:,:]
+    mu1 = np.mean(cchn[:, od1])
+    mu2 = np.mean(cchn[:, od2])
+    std1 = np.std(cchn[:, od1])
+    std2 = np.std(cchn[:, od2])
 
     mean_names = dict([(0,'$\\overline{\\Omega}_m$'),(1,'$\\overline{\\Omega}_\\Lambda$'),(2,'$\\overline{H}_0$'),(3,'$\\overline{M}$')])
 
     ax[2,0].hist(cchn[:,od1],bins=one_d_bins, density=1)
-    ax[2,0].axvline(np.mean(cchn[:,od1]), color='k')
-    ax[2,0].text(np.mean(cchn[:,0]),-3, mean_names[od1]+'={:.3f}'.format(np.mean(cchn[:,0])))
+    ax[2,0].axvline(mu1, color='k')
+
+    ax[2,0].text(mu1,0, mean_names[od1]+'={:.3f}'.format(mu1), va='bottom')
+    ax[2,0].set_title(mean_names[od1]+'$={:.3f} \pm{:.3f}$'.format(mu1, std1))
+
 
     if od2 is not None:
 
         ax[2,0].hist(cchn[:,1],bins=one_d_bins, density=1)
-        ax[2,0].axvline(np.mean(cchn[:,od2]), color='k')
-        ax[2,0].text(np.mean(cchn[:,1]),-3,mean_names[od2]+'={:.3f}'.format(np.mean(cchn[:,1])))
+        ax[2,0].axvline(mu2, color='k')
+        ax[2,0].text(np.mean(cchn[:,od2]),0, mean_names[od2]+'={:.3f}'.format(mu2))
+        ax[2,0].set_title(mean_names[od1]+' $={:.3f}\\pm{:.3f}$ '.format(mu1,std1) + mean_names[od2]+' $={:.3f}\\pm{:.3f}$ '.format(mu2,std2) )
 
         p_range = np.array([[min(cchn[:,td1]), max(cchn[:,td1])], [min(cchn[:, td2]), max(cchn[:, td2])]])
         ex_range = np.zeros((2, 2))
@@ -343,6 +321,10 @@ def likelihood_test(data, resolution, p1_min, p1_max, p2_min, p2_max, p1_slice=.
             p1_lik[i]= likelihood([p1_item,p2_slice,74,-19.23], data)
     for j,p2_item in enumerate(p2):
         p2_lik[j] = likelihood([p1_slice,p2_item,74,-19.23], data)
+
+    plt.rc('axes', titlesize=12)
+    plt.rc('axes', labelsize=18)
+    plt.rc('figure', titlesize=20)
 
     if two_d:    
         fig, ax = plt.subplots(1,3, figsize=(18,5))
