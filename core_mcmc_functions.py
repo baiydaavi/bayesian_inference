@@ -104,6 +104,14 @@ def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=
     i=0
     convergence = False
 
+    if variances == 'systematic':
+        covariance = .1*np.array([
+            [.015, .024, .070, 0.0],
+            [.024, .048, .177, 0.0],
+            [.070, .177, 1, 0.0],
+            [0.0, 0.0, 0.0, 0.5]
+            ])
+
     if variances is None:
         covariance = .1*np.array([
             [.015, .024, .070, 0.0],
@@ -128,6 +136,7 @@ def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=
         chain.append(current)
         
         convergence, diff_booleans = convergence_test(chain, convergence_window, convergence_threshhold)
+        print("done {:2.1%} of max trials".format(i / max_trials),end="\r")
         
     rej= np.asarray(rejects)
     chn= np.asarray(chain)
@@ -207,6 +216,7 @@ def asynchronous_chain(data, max_trials=10000, convergence_window=50, convergenc
 
     chn= np.asarray(chain)
     print('total trials:{}'.format(i))
+
     if convergence == False:
         print('convergence failed. converged parameters:', diff_booleans)
     return chn
@@ -241,7 +251,7 @@ def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_
     od2 = one_d_hist_2
     td1 = two_d_hist_1
     td2 = two_d_hist_2
-    names = dict([(0,'$\\Omega_m$'),(1,'$\\Omega_\\Lambda$'),(2,'$M$'),(3,'$H_0$')])
+    names = dict([(0,'$\\Omega_m$'),(1,'$\\Omega_\\Lambda$'),(2,'$H_0$'),(3,'$M$')])
 
     fig,ax = plt.subplots(3, 2, figsize=(20,15))
 
@@ -268,7 +278,7 @@ def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_
     cutoff = int(len(chain[:,0])/5)
     cchn = chain[cutoff:,:]    
 
-    mean_names = dict([(0,'$\\overline{\\Omega}_m$'),(1,'$\\overline{\\Omega}_\\Lambda$'),(2,'$\\overline{M}$'),(3,'$\\overline{H}_0$')])
+    mean_names = dict([(0,'$\\overline{\\Omega}_m$'),(1,'$\\overline{\\Omega}_\\Lambda$'),(2,'$\\overline{H}_0$'),(3,'$\\overline{M}$')])
 
     ax[2,0].hist(cchn[:,od1],bins=one_d_bins, density=1)
     ax[2,0].axvline(np.mean(cchn[:,od1]), color='k')
