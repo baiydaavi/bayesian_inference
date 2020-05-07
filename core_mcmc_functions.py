@@ -54,7 +54,8 @@ def metropolis(params, candidate_params, data, prior_func, likelihood_func, prio
             return False
 
 
-def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=.001, start_state=np.ones(4)+1, variances=np.ones(4)/5, prior_func=prior, likelihood_func=likelihood, prior_mode='uniform'):
+def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=.001,
+          start_state=np.ones(4)+1, variances=np.ones(4)/5, prior_func=prior, likelihood_func=likelihood, prior_mode='uniform'):
     '''
     this is the core function that makes our MCMC chain, it relies on the metropolis and convergence_test functions defined in this document
 
@@ -191,7 +192,8 @@ def convergence_test(chain, convergence_window, convergence_threshhold):
         return False, []
 
 
-def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_d_hist_2=1, two_d_hist_1=0, two_d_hist_2=1, one_d_bins=30, two_d_bins=80, two_d_histogram=True, save=False):
+def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_d_hist_2=1,
+                         two_d_hist_1=0, two_d_hist_2=1, one_d_bins=30, two_d_bins=80, two_d_histogram=True, save=False):
     '''
     this function is for plotting trace plots of all 4 parameters, and 1-D/2D histograms of w/e 2 paramters we want.
 
@@ -257,7 +259,10 @@ def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_
     std1 = np.std(cchn[:, od1])
     std2 = np.std(cchn[:, od2])
 
-    mean_names = dict([(0, '$\\overline{\\Omega}_m$'), (1, '$\\overline{\\Omega}_\\Lambda$'), (2, '$\\overline{H}_0$'), (3, '$\\overline{M}$')])
+    mean_names = dict([
+        (0, '$\\overline{\\Omega}_m$'), (1, '$\\overline{\\Omega}_\\Lambda$'),
+        (2, '$\\overline{H}_0$'), (3, '$\\overline{M}$')
+        ])
 
     ax[2, 0].hist(cchn[:, od1], bins=one_d_bins, density=1)
     ax[2, 0].axvline(mu1, color='k')
@@ -270,14 +275,17 @@ def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_
         ax[2, 0].hist(cchn[:, 1], bins=one_d_bins, density=1)
         ax[2, 0].axvline(mu2, color='k')
         ax[2, 0].text(np.mean(cchn[:, od2]), 0, mean_names[od2]+'={:.3f}'.format(mu2))
-        ax[2, 0].set_title(mean_names[od1]+' $={:.3f}\\pm{:.3f}$ '.format(mu1, std1) + mean_names[od2]+' $={:.3f}\\pm{:.3f}$ '.format(mu2, std2))
+        ax[2, 0].set_title(
+            mean_names[od1]+' $={:.3f}\\pm{:.3f}$ '.format(mu1, std1) + mean_names[od2]+' $={:.3f}\\pm{:.3f}$ '.format(mu2, std2)
+            )
 
     if two_d_histogram:
         p_range = np.array([[min(cchn[:, td1]), max(cchn[:, td1])], [min(cchn[:, td2]), max(cchn[:, td2])]])
         ex_range = np.zeros((2, 2))
         L = .2*(p_range[:, 1]-p_range[:, 0])
         ex_range[:, 0], ex_range[:, 1] = p_range[:, 0] - L, p_range[:, 1] + L
-        ax[2, 1].hist2d(cchn[:, td1], cchn[:, td2], bins=two_d_bins, range=[[ex_range[0, 0], ex_range[0, 1]], [ex_range[1, 0], ex_range[1, 1]]])
+        ax[2, 1].hist2d(cchn[:, td1], cchn[:, td2], bins=two_d_bins,
+                        range=[[ex_range[0, 0], ex_range[0, 1]], [ex_range[1, 0], ex_range[1, 1]]])
     else:
         ax[2, 1].scatter(cchn[:, td1], cchn[:, td2], alpha=.05)
 
@@ -293,7 +301,8 @@ def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_
 data_lcparam = pd.read_csv("lcparam_DS17f.txt", sep=" ")
 
 
-def likelihood_test(resolution, p1_min=.1, p1_max=1.2, p2_min=.5, p2_max=1.15, data=data_lcparam, p1_slice=.52, p2_slice=.82, two_d=True, save=False):
+def likelihood_test(resolution, p1_min=.1, p1_max=1.2, p2_min=.5, p2_max=1.15,
+                    data=data_lcparam, p1_slice=.52, p2_slice=.82, two_d=True, save=False):
     '''
     this function does a brute force likelihood sweep of the omegas setting M=74 and H0=-19.23.
 
