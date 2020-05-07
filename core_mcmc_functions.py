@@ -3,7 +3,8 @@ from prior_likelihood import prior
 from prior_likelihood import likelihood
 import matplotlib.pyplot as plt
 
-def metropolis(params, candidate_params, data, prior_func, likelihood_func, prior_mode = 'uniform'): 
+
+def metropolis(params, candidate_params, data, prior_func, likelihood_func, prior_mode='uniform'):
     '''
     this is the function that decides if we keep trials or not, it is called inside of the mcmc chain algorithm
 
@@ -17,7 +18,7 @@ def metropolis(params, candidate_params, data, prior_func, likelihood_func, prio
 
     data :  whatever format data that likelyhood_function needs as an input
         the dataset we are running the MCMC on
-    
+
     prior_func : function with inputs (params, magnitude_mode=arg)
         function that calculates the prior probability of our set of parameters
 
@@ -31,9 +32,8 @@ def metropolis(params, candidate_params, data, prior_func, likelihood_func, prio
     True : if we should accept the move to candidate params
     False : if we shou;d reject the move to candidate params
 
-    ''' 
-
-    if prior_func(candidate_params, magnitude_mode=prior_mode)=='forbidden':
+    '''
+    if prior_func(candidate_params, magnitude_mode=prior_mode) == 'forbidden':
         return False
 
     else:
@@ -43,17 +43,17 @@ def metropolis(params, candidate_params, data, prior_func, likelihood_func, prio
             else:
                 return prior_func(params, magnitude_mode=prior_mode)+likelihood_func(params, data)
 
-        threshhold = np.exp(min(0,get_log_prob(candidate_params)-get_log_prob(params)))
+        threshhold = np.exp(min(0, get_log_prob(candidate_params) - get_log_prob(params)))
 
-        decide=np.random.uniform(0,1,1)
-    
+        decide = np.random.uniform(0, 1, 1)
+
         if threshhold > decide:
             return True
         else:
             return False
 
-def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=.001, start_state= np.ones(4)+1, variances=np.ones(4)/5,
-    prior_func=prior, likelihood_func=likelihood, prior_mode='uniform'):
+
+def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=.001, start_state=np.ones(4)+1, variances=np.ones(4)/5, prior_func=prior, likelihood_func=likelihood, prior_mode='uniform'):
     '''
     this is the core function that makes our MCMC chain, it relies on the metropolis and convergence_test functions defined in this document
 
@@ -80,7 +80,7 @@ def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=
         sets the variance for generating new samples using np.random.multivariate_normal
         if None: uses a hardcoded non-diagonal covariance matrix
         if 1-D list or array : uses a diagonal covariance matrix with diagonal elements = list elements
-        if 2-D array : uses the 2D array as the covariance matrix 
+        if 2-D array : uses the 2D array as the covariance matrix
 
     prior_func : function with inputs (params, magnitude_mode=arg)
         function that calculates the prior probability of our set of parameters
@@ -98,18 +98,18 @@ def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=
         these are the samples that got rejected by the algorithm,
         will have np.nan for the whole row if the trial was accepted
     '''
-    chain=[]
-    rejects=[]
+    chain = []
+    rejects = []
     current = start_state
-    i=0
+    i = 0
     convergence = False
 
     if variances == 'systematic':
         covariance = .1*np.array([
-            [.015, .024, .070, 0.0],
-            [.024, .048, .177, 0.0],
-            [.070, .177, 1, 0.0],
-            [0.0, 0.0, 0.0, 0.5]
+            [.0016, .0023, .0017, 0.0],
+            [.0023, .0040, .122, 0.0],
+            [.0017, .0122, 1, .0268],
+            [0.0, 0.0, 0.0268, 0.0001]
             ])
 
     if variances is None:
@@ -125,26 +125,27 @@ def chain(data, max_trials=10000, convergence_window=50, convergence_threshhold=
         if len(np.shape(variances)) == 2:
             covariance = variances
 
-    while convergence == False and i < max_trials:
+    while convergence is False and i < max_trials:
         candidate = np.random.multivariate_normal(current, covariance)
         i += 1
-        if metropolis(current, candidate, data, prior_func, likelihood_func, prior_mode= prior_mode):
+        if metropolis(current, candidate, data, prior_func, likelihood_func, prior_mode=prior_mode):
             rejects.append(np.zeros(4)*np.nan)
             current = candidate
         else:
             rejects.append(candidate)
         chain.append(current)
-        
+
         convergence, diff_booleans = convergence_test(chain, convergence_window, convergence_threshhold)
-        print("done {:2.1%} of max trials".format(i / max_trials),end="\r")
-        
-    rej= np.asarray(rejects)
-    chn= np.asarray(chain)
-    
-    print('total trials:{}. accepted {:.1f}% of trials'.format(i, 100*(1-sum(rej[:,0] > 0)/i)))
-    if convergence == False:
+        print("done {:2.1%} of max trials".format(i / max_trials), end="\r")
+
+    rej = np.asarray(rejects)
+    chn = np.asarray(chain)
+
+    print('total trials:{}. accepted {:.1f}% of trials'.format(i, 100*(1-sum(rej[:, 0] > 0)/i)))
+    if convergence is False:
         print('convergence failed. converged parameters:', diff_booleans)
     return chn, rej
+
 
 def convergence_test(chain, convergence_window, convergence_threshhold):
     '''
@@ -157,13 +158,13 @@ def convergence_test(chain, convergence_window, convergence_threshhold):
 
     chain : a list of parameter values, dimension (some int, number of params )
         the mcmc chain we are testing
-    
+
     convergence_window : int
         how large a range it averages over for convergence
 
     convergence_threshhold : number>0 and < 1
         the maximum allowed percent change for reaching convergence, .01 means 1%
-    
+
     returns
     -------
 
@@ -217,72 +218,71 @@ def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_
     od2 = one_d_hist_2
     td1 = two_d_hist_1
     td2 = two_d_hist_2
-    names = dict([(0,'$\\Omega_m$'),(1,'$\\Omega_\\Lambda$'),(2,'$H_0$'),(3,'$M$')])
+    names = dict([(0, '$\\Omega_m$'), (1, '$\\Omega_\\Lambda$'), (2, '$H_0$'), (3, '$M$')])
 
     plt.rc('axes', titlesize=18)
     plt.rc('axes', labelsize=18)
     plt.rc('figure', titlesize=20)
 
-    fig,ax = plt.subplots(3, 2, figsize=(20,15))
+    fig, ax = plt.subplots(3, 2, figsize=(20, 15))
 
-    hist_or_scatter = dict ([(True, 'histogram'), (False, 'scatter plot')])
+    hist_or_scatter = dict([(True, 'histogram'), (False, 'scatter plot')])
 
     fig.suptitle('plots 1-4 are trace plots, 5 is a 1D historgram of 1 or 2 parameters and 6 is a 2D'+hist_or_scatter[two_d_histogram])
 
-    ax[0,0].plot(chain[:,0])
-    ax[0,0].set_title(names[0])
-    ax[0,1].plot(chain[:,1])
-    ax[0,1].set_title(names[1])
-    ax[1,0].plot(chain[:,2])
-    ax[1,0].set_title(names[2])
-    ax[1,1].plot(chain[:,3])
-    ax[1,1].set_title(names[3])
+    ax[0, 0].plot(chain[:, 0])
+    ax[0, 0].set_title(names[0])
+    ax[0, 1].plot(chain[:, 1])
+    ax[0, 1].set_title(names[1])
+    ax[1, 0].plot(chain[:, 2])
+    ax[1, 0].set_title(names[2])
+    ax[1, 1].plot(chain[:, 3])
+    ax[1, 1].set_title(names[3])
 
-    if plot_rejects == True:
-        rej_alpha = 400/len(rejects[:,0])
-        ax[0,0].plot(rejects[:,0], '+', alpha=rej_alpha)
-        ax[0,1].plot(rejects[:,1], '+', alpha=rej_alpha)
-        ax[1,0].plot(rejects[:,2], '+', alpha=rej_alpha)
-        ax[1,1].plot(rejects[:,3], '+', alpha=rej_alpha)
+    if plot_rejects:
+        rej_alpha = 400/len(rejects[:, 0])
+        ax[0, 0].plot(rejects[:, 0], '+', alpha=rej_alpha)
+        ax[0, 1].plot(rejects[:, 1], '+', alpha=rej_alpha)
+        ax[1, 0].plot(rejects[:, 2], '+', alpha=rej_alpha)
+        ax[1, 1].plot(rejects[:, 3], '+', alpha=rej_alpha)
 
-    cutoff = int(len(chain[:,0])/5)
-    cchn = chain[cutoff:,:]
+    cutoff = int(len(chain[:, 0])/5)
+    cchn = chain[cutoff:, :]
     mu1 = np.mean(cchn[:, od1])
     mu2 = np.mean(cchn[:, od2])
     std1 = np.std(cchn[:, od1])
     std2 = np.std(cchn[:, od2])
 
-    mean_names = dict([(0,'$\\overline{\\Omega}_m$'),(1,'$\\overline{\\Omega}_\\Lambda$'),(2,'$\\overline{H}_0$'),(3,'$\\overline{M}$')])
+    mean_names = dict([(0, '$\\overline{\\Omega}_m$'), (1, '$\\overline{\\Omega}_\\Lambda$'), (2, '$\\overline{H}_0$'), (3, '$\\overline{M}$')])
 
-    ax[2,0].hist(cchn[:,od1],bins=one_d_bins, density=1)
-    ax[2,0].axvline(mu1, color='k')
+    ax[2, 0].hist(cchn[:, od1], bins=one_d_bins, density=1)
+    ax[2, 0].axvline(mu1, color='k')
 
-    ax[2,0].text(mu1,0, mean_names[od1]+'={:.3f}'.format(mu1), va='bottom')
-    ax[2,0].set_title(mean_names[od1]+'$={:.3f} \pm{:.3f}$'.format(mu1, std1))
-
+    ax[2, 0].text(mu1, 0, mean_names[od1]+'={:.3f}'.format(mu1), va='bottom')
+    ax[2, 0].set_title(mean_names[od1]+'$={:.3f}\\pm{:.3f}$'.format(mu1, std1))
 
     if od2 is not None:
 
-        ax[2,0].hist(cchn[:,1],bins=one_d_bins, density=1)
-        ax[2,0].axvline(mu2, color='k')
-        ax[2,0].text(np.mean(cchn[:,od2]),0, mean_names[od2]+'={:.3f}'.format(mu2))
-        ax[2,0].set_title(mean_names[od1]+' $={:.3f}\\pm{:.3f}$ '.format(mu1,std1) + mean_names[od2]+' $={:.3f}\\pm{:.3f}$ '.format(mu2,std2) )
+        ax[2, 0].hist(cchn[:, 1], bins=one_d_bins, density=1)
+        ax[2, 0].axvline(mu2, color='k')
+        ax[2, 0].text(np.mean(cchn[:, od2]), 0, mean_names[od2]+'={:.3f}'.format(mu2))
+        ax[2, 0].set_title(mean_names[od1]+' $={:.3f}\\pm{:.3f}$ '.format(mu1, std1) + mean_names[od2]+' $={:.3f}\\pm{:.3f}$ '.format(mu2, std2))
 
-        p_range = np.array([[min(cchn[:,td1]), max(cchn[:,td1])], [min(cchn[:, td2]), max(cchn[:, td2])]])
+        p_range = np.array([[min(cchn[:, td1]), max(cchn[:, td1])], [min(cchn[:, td2]), max(cchn[:, td2])]])
         ex_range = np.zeros((2, 2))
-        L = .2*(p_range[:,1]-p_range[:, 0])
-        ex_range[:,0], ex_range[:,1]  = p_range[:, 0] - L, p_range[:, 1] + L
+        L = .2*(p_range[:, 1]-p_range[:, 0])
+        ex_range[:, 0], ex_range[:, 1] = p_range[:, 0] - L, p_range[:, 1] + L
 
     if two_d_histogram:
-        ax[2,1].hist2d(cchn[:,td1],cchn[:,td2], bins=two_d_bins, range=[[ex_range[0,0], ex_range[0,1]], [ex_range[1,0], ex_range[1,1] ]])
+        ax[2, 1].hist2d(cchn[:, td1], cchn[:, td2], bins=two_d_bins, range=[[ex_range[0, 0], ex_range[0, 1]], [ex_range[1, 0], ex_range[1, 1]]])
     else:
-        ax[2,1].scatter(cchn[:,td1],cchn[:,td2], alpha=.05 )
+        ax[2, 1].scatter(cchn[:, td1], cchn[:, td2], alpha=.05)
 
-    ax[2,1].set_xlabel(names[td1])
-    ax[2,1].set_ylabel(names[td2])
+    ax[2, 1].set_xlabel(names[td1])
+    ax[2, 1].set_ylabel(names[td2])
 
     if save:
-        plt.savefig('chain{}.png'.format(len(chain[:,0])))
+        plt.savefig('chain{}.png'.format(len(chain[:, 0])))
 
     plt.show()
 
@@ -305,31 +305,31 @@ def likelihood_test(data, resolution, p1_min, p1_max, p2_min, p2_max, p1_slice=.
         if false, we only do 1D plots. will be much faster
     save: True/False
         True for save, False for no save
-    
+
     returns
     ------
     shows and/or saves plots. no returns
     '''
-    p1= np.linspace(p1_min,p1_max,resolution)
-    p2= np.linspace(p2_min,p2_max,resolution)
-    p1_lik=np.zeros(resolution)
-    p2_lik=np.zeros(resolution)
+    p1 = np.linspace(p1_min, p1_max, resolution)
+    p2 = np.linspace(p2_min, p2_max, resolution)
+    p1_lik = np.zeros(resolution)
+    p2_lik = np.zeros(resolution)
 
-    names = dict([(0,'$\\Omega_m$'),(1,'$\\Omega_\\Lambda$')])
+    names = dict([(0, '$\\Omega_m$'), (1, '$\\Omega_\\Lambda$')])
 
     for i, p1_item in enumerate(p1):
-            p1_lik[i]= likelihood([p1_item,p2_slice,74,-19.23], data)
-    for j,p2_item in enumerate(p2):
-        p2_lik[j] = likelihood([p1_slice,p2_item,74,-19.23], data)
+        p1_lik[i] = likelihood([p1_item, p2_slice, 74, -19.23], data)
+    for j, p2_item in enumerate(p2):
+        p2_lik[j] = likelihood([p1_slice, p2_item, 74, -19.23], data)
 
     plt.rc('axes', titlesize=12)
     plt.rc('axes', labelsize=18)
     plt.rc('figure', titlesize=20)
 
-    if two_d:    
-        fig, ax = plt.subplots(1,3, figsize=(18,5))
+    if two_d:
+        fig, ax = plt.subplots(1, 3, figsize=(18, 5))
     else:
-        fig, ax = plt.subplots(1,2, figsize=(12,5))
+        fig, ax = plt.subplots(1, 2, figsize=(12, 5))
 
     for item in ax:
         item.set_xlabel(names[0])
@@ -339,17 +339,18 @@ def likelihood_test(data, resolution, p1_min, p1_max, p2_min, p2_max, p1_slice=.
     ax[0].set_title('log likelihood of p1 when p2={}'.format(p2_slice))
     ax[1].plot(p2, p2_lik)
     ax[1].set_title('log likelihood of p2 when p1={}'.format(p1_slice))
-    
+
     if two_d:
-        x, y = np.meshgrid(p1,p2)
-        z=np.zeros((resolution,resolution))
+        x, y = np.meshgrid(p1, p2)
+        z = np.zeros((resolution, resolution))
         for i, p1_item in enumerate(p1):
-            for j,p2_item in enumerate(p2):
-                z[i,j]= likelihood([p1_item,p2_item,74,-19.23], data)
-    
-        c1 = np.max(z)- 2.3/2
-        c2 = np.max(z)- 6.17/2
-        contours=[c2, c1, np.max(z)]
+            for j, p2_item in enumerate(p2):
+                z[i, j] = likelihood([p1_item, p2_item, 74, -19.23], data)
+                print("{:2.1%} done".format(i / resolution), end="\r")
+
+        c1 = np.max(z) - 2.3/2
+        c2 = np.max(z) - 6.17/2
+        contours = [c2, c1, np.max(z)]
         c = ax[2].contour(x, y, z, contours)
         fig.colorbar(c, ax=ax[2])
         ax[2].set_title('log_likelihood when H0=74 and M=-19.23 are set')
