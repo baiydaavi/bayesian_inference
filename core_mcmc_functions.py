@@ -7,7 +7,8 @@ import pandas as pd
 
 def metropolis(params, candidate_params, data, prior_func, likelihood_func, prior_mode='uniform'):
     '''
-    this is the function that decides if we keep trials or not, it is called inside of the mcmc chain algorithm
+    this is the function that decides if we keep trials or not, it is called inside of the mcmc chain algorithm.
+    it operates in the log-likelyhood basis-- so products/quotients of likelyhoods become sums/differences 
 
     parameters
     ----------
@@ -21,12 +22,16 @@ def metropolis(params, candidate_params, data, prior_func, likelihood_func, prio
         the dataset we are running the MCMC on
 
     prior_func : function with inputs (params, magnitude_mode=arg)
-        function that calculates the prior probability of our set of parameters
+        function that calculates the log of the prior probability of our set of parameters
+        this function should return the string 'forbidden' if forbidden parameter ranges are
+        entered.
 
     likelihood_func : function with inputs: (params, data)
-        function that calculates the likelyhood of our set of parameters given the data
+        function that calculates the log likelyhood of our set of parameters given the data
 
     prior_mode : an input that is recognized by the prior function as mag_mode=priorm_mode
+        if set to 'uniform', then the prior function will be skipped completely as long as the
+        parameters are within allowed regions.
 
     returns
     -------
@@ -298,13 +303,14 @@ def plot_chain_behaviour(chain, rejects, plot_rejects=True, one_d_hist_1=0, one_
     plt.show()
 
 
-data_lcparam = pd.read_csv("lcparam_DS17f.txt", sep=" ")
+Data_lcparam = pd.read_csv("lcparam_DS17f.txt", sep=" ")
 
 
 def likelihood_test(resolution, p1_min=.1, p1_max=1.2, p2_min=.5, p2_max=1.15,
-                    data=data_lcparam, p1_slice=.52, p2_slice=.82, two_d=True, save=False):
+                    data=Data_lcparam, p1_slice=.52, p2_slice=.82, two_d=True, save=False):
     '''
-    this function does a brute force likelihood sweep of the omegas setting M=74 and H0=-19.23.
+    this function does a brute force likelihood sweep of the omegas setting M=74 and H0=-19.23. It might not be a
+    'unit test' (in that there is no simple assert statement), but we found it to be invaluable when diagnosing bugs
 
     params
     -----
@@ -374,8 +380,48 @@ def likelihood_test(resolution, p1_min=.1, p1_max=1.2, p2_min=.5, p2_max=1.15,
         plt.savefig('likelihood_test{}'.format(resolution))
 
 
-def chain_test(data=data_lcparam):
+def chain_test(data=Data_lcparam):
+    '''
+    this runs the chain algorithm, setting 3 paramters fixed and makes sure that
+    the third parameter converges to the value that is the maximum likelihood value
+    when the others are fixed. returns an assert error if it fails
+    '''
     chn, rej = chain(data, 1000, 400, .01, start_state=[.2, .82, 74, -19.23], variances=[.05, 0, 0, 0], prior_mode='uniform')
     mu = np.mean(chn[200:, 0])
     assert mu > .36 and mu < .4, 'chain failed to head towards max likelihood '
-    print('mission accomplished')
+    print('no problems detected')
+
+
+def metropolis_test():
+    '''
+    unit test for the metropolis part of the codebase
+    first, it verifies that we do indeed jump to a higherprobability deterministically
+    then, it varifies that the jumps to lower likelihood have approximately correct statistics
+    it does so by making sure the answers check out against a known data set.
+    '''
+
+    def log_likelihood(data, param):
+        return -.5 * np.sum((data-param)**2)
+
+    def uniform_log_prior(params, magnitude_mode='uniform'):
+        return 0
+
+    np.random.seed(0)
+    test_data = np.random.normal(1, .5, 100)
+
+    # test if we correctly jump to a higher likelihood state
+    kwargs = {'prior_func': uniform_log_prior, 'likelihood_func': log_likelihood, 'prior_mode': 'uniform'}
+    hopefully_true = metropolis(.5, .99, test_data, **kwargs)
+    assert hopefully_true is True, 'failed to accept jump to higher likelihood state'
+
+    # make sure we have the propoer ratio of jumps to a well known lower likelihood state, over 10000 samples
+    test_list = np.zeros(10000)
+    np.random.seed()
+    for i in range(len(test_list)):
+        test_list[i] = metropolis(1, .9, test_data, **kwargs)
+
+    ratio = sum(test_list)/len(test_list)
+    assert ratio > .42, 'rejected too many samples'
+    assert ratio < .48, 'accepted too many samples'
+
+    return('its an old code, but it checks out')
