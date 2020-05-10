@@ -192,7 +192,7 @@ def mcmc_lambda_cdm_test():
     # import main data
     data_lcparam = pd.read_csv("lcparam_DS17f.txt", sep=" ")
 
-    chn, rej, convergence_value = chain(
+    chn, _, convergence_value = chain(
         data_lcparam,
         20000,
         1500,
@@ -308,7 +308,7 @@ def chain_test(data=Data_lcparam):
     the third parameter converges to the value that is the maximum likelihood value
     when the others are fixed. returns an assert error if it fails
     """
-    chn, _, _ = chain(
+    chn, _1, _2 = chain(
         data,
         1000,
         400,

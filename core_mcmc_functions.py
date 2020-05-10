@@ -365,3 +365,24 @@ def plot_chain_behaviour(
         plt.savefig("chain{}.png".format(len(chain[:, 0])))
 
     plt.show()
+
+def estimate_covariance(chain, scaling=1, trim_ratio=.25):
+"""
+params
+-----
+chain: an array where the variables are different columns and rows are observations
+    we will estimate the covariance b/w these variables for this data set
+scaling: float
+    scale the maximum value in the covariance matrix to be this number, genrally <=1
+trim_ratio: float > 0 and < 1
+    this is the ratio of data that we want to drop before looking at covariance
+
+returns
+-------
+cov: N X N np array, N is the number of columns in the input chain
+    this is the covariance matrix
+"""
+    cutoff = int(trim_ratio*len(chain[:,0]))
+    cchn = chn[cutoff:,:] 
+    cov=np.cov(cchn, y=None, rowvar=False)
+    return scaling* cov/np.max(np.abs(cov))
