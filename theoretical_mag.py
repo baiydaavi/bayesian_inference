@@ -12,7 +12,7 @@ import numpy as np
 from scipy import integrate
 
 
-def calculate_apparent_mag(params, SNdata):
+def calculate_apparent_mag(params, redshift_data):
     """
     Computes apparent magnitudes for an array of observed SN by using their 
     redshift data along with assumed cosmology parameters to compute a 
@@ -66,13 +66,15 @@ def calculate_apparent_mag(params, SNdata):
 
     c = 3.0 * (10 ** 5)  # speed of light in km/s
 
-    apparent_mags = [0.0] * len(SNdata)  # to store calculated m values for each SN
+    apparent_mags = [0.0] * len(
+        redshift_data
+    )  # to store calculated m values for each SN
 
     OmegaK = 1 - params[0] - params[1]  # based on sum(Omega_i) = 1
 
     # looping over each SN in the dataset
 
-    for i in range(0, len(SNdata["zhel"])):
+    for i in range(0, len(redshift_data)):
 
         f = (
             lambda x: (
@@ -81,23 +83,23 @@ def calculate_apparent_mag(params, SNdata):
             ** -0.5
         )
 
-        eta, etaerr = integrate.quad(f, 0.0, SNdata["zhel"][i])
+        eta, etaerr = integrate.quad(f, 0.0, redshift_data[i])
 
         # note here that dL ends up being in units of pc
 
         if OmegaK == 0.0:
-            dL = (c * (1 + SNdata["zhel"][i]) / (params[2] * (10 ** -6))) * eta
+            dL = (c * (1 + redshift_data[i]) / (params[2] * (10 ** -6))) * eta
 
         elif OmegaK > 0.0:
             dL = (
-                (c * (1 + SNdata["zhel"][i]) / (params[2] * (10 ** -6)))
+                (c * (1 + redshift_data[i]) / (params[2] * (10 ** -6)))
                 * (1 / math.sqrt(abs(OmegaK)))
                 * math.sinh(math.sqrt(abs(OmegaK)) * eta)
             )
 
         elif OmegaK < 0.0:
             dL = (
-                (c * (1 + SNdata["zhel"][i]) / (params[2] * (10 ** -6)))
+                (c * (1 + redshift_data[i]) / (params[2] * (10 ** -6)))
                 * (1 / math.sqrt(abs(OmegaK)))
                 * math.sin(math.sqrt(abs(OmegaK)) * eta)
             )
