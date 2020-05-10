@@ -91,7 +91,7 @@ def likelihood(params, data_lcparam, sys_error=None):
     # Calculating the difference between the measured (app_mag)
     # and estimated apparent magnitude (mag_model).
 
-    diff_app_mag = app_mag - mag_model(params, data_lcparam)
+    diff_app_mag = app_mag - mag_model(params, data_lcparam.zcmb)
 
     # Defining a 40x40 diagonal matrix whose diagonal entries
     # are the square of the corresponding statistical error.
