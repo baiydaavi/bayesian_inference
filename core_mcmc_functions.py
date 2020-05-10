@@ -480,10 +480,11 @@ def chain_test(data=Data_lcparam):
 
 def metropolis_test():
     """
-    unit test for the metropolis part of the codebase
-    first, it verifies that we do indeed jump to a higherprobability deterministically
-    then, it varifies that the jumps to lower likelihood have approximately correct statistics
-    it does so by making sure the answers check out against a known data set.
+    Unit test for the metropolis part of the codebase. First, we create simple likelihood (shifted gaussian) and prior(uniform)
+    Then, we make a data set where we know the answer by setting the numpy seed=0.
+    Using this data set, we first verify that metropolis returns True when the proposed jump is to a higher likelihood region
+    Then, we varify that jumps to lower likelihood region have approximately correct acceptance proportion over 10,000 trials
+    The correct proportion was calibrated to be ~45.5%, but it allows a small region around that, because we are taking finite samples.
     """
 
     def log_likelihood(data, param):
