@@ -83,7 +83,7 @@ def calculate_apparent_mag(params, redshift_data):
             ** -0.5
         )
 
-        eta, etaerr = integrate.quad(f, 0.0, redshift_data[i])
+        eta, _ = integrate.quad(f, 0.0, redshift_data[i])
 
         # note here that dL ends up being in units of pc
 

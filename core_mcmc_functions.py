@@ -464,7 +464,7 @@ def chain_test(data=Data_lcparam):
     the third parameter converges to the value that is the maximum likelihood value
     when the others are fixed. returns an assert error if it fails
     """
-    chn, rej = chain(
+    chn, _ = chain(
         data,
         1000,
         400,
