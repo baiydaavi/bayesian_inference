@@ -3,9 +3,11 @@
 This file contains all the test functions for the following
 functions:
 1. The function that calculates the apparent magnitude
-2. The likelihood function
-3. The metropolis-hastings function
-4. The mcmc chain
+2. The function that calculates the apparent magnitude for
+   lambda CDM model.
+3. The likelihood function
+4. The metropolis-hastings function
+5. The mcmc chain
 """
 
 import numpy as np
@@ -15,6 +17,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from theoretical_mag import calculate_apparent_mag as mag_model
+from lambda_cdm_functions import lambda_cdm_mag
 from prior_likelihood import likelihood
 from lambda_cdm_functions import lambda_cdm_likelihood
 from lambda_cdm_functions import lambda_cdm_prior
@@ -146,9 +149,50 @@ def test_mag_func_omegaK_is_neg():
 
     assert (
         lum_distance == expected_output
-    ), "apparent magnitude function does not work when OmegaK < 0.0"
+    ), "apparent magnitude function for lambda CDM model does not work"
 
     print("output of the magnitude function is correct")
+
+
+def test_lambda_cdm_mag_func():
+
+    """ Lambda CDM apparent magnitude calculator test function.
+
+    This is a test function that tests the apparent
+    magnitude calculator function for the Lambda CDM model.
+    We use the following link to check if our answer
+    is correct:
+    http://www.astro.ucla.edu/~wright/CosmoCalc.html
+
+    The apparent magnitude function outputs the apparent
+    magnitude but in the website they calculate the 
+    luminosity distance. Therefore, we calculate the 
+    luminosity distance from the apparent magnitude output
+    of our function to compare it with the one on the
+    website.
+    """
+
+    test_param = [0.286, 69.6, -19.23]
+
+    # Our apparent magnitude function takes the cosmological parameters
+    # and the redshift data array as input. For the test, we input an
+    # array containing one redshift data point.
+
+    dist_modulus = lambda_cdm_mag(test_param, [3])[0]
+
+    # Calculating the luminosity distance in units of 10^4 Mpc.
+
+    lum_distance = round(10 ** ((dist_modulus - test_param[2]) / 5) * 10 / 10 ** 10, 2)
+
+    # The expected output for the same parameter set in units of 10^4 Mpc.
+
+    expected_output = 2.59
+
+    assert (
+        lum_distance == expected_output
+    ), "apparent magnitude function does not work when OmegaK = 0.0"
+
+    print("output of the magnitude function for the lambda CDM model is correct")
 
 
 def likelihood_test_fake_data():
@@ -323,11 +367,13 @@ def metropolis_test():
 
     assert hopefully_true is True, "failed to accept jump to higher likelihood state"
 
-    # make sure we have the proper ratio of jumps to a well known lower likelihood state, over 100,000 samples
-    test_list = np.zeros(100000)
     # reset the seed, so we can generate a random sample for the next step
 
     np.random.seed()
+
+    # make sure we have the proper ratio of jumps to a well known lower likelihood state, over 100,000 samples
+
+    test_list = np.zeros(100000)
 
     # Check if we have the proper ratio of jumps to a well known lower likelihood
     # state, over 100,000 samples.
