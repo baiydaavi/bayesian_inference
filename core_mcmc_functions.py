@@ -331,7 +331,7 @@ def plot_chain_behaviour(
     two_d_hist_1=0,
     two_d_hist_2=1,
     one_d_bins=30,
-    two_d_bins=80,
+    two_d_bins=100,
     two_d_histogram=True,
     save=False,
 ):
@@ -453,6 +453,7 @@ def plot_chain_behaviour(
             cchn[:, td2],
             bins=two_d_bins,
             range=[[ex_range[0, 0], ex_range[0, 1]], [ex_range[1, 0], ex_range[1, 1]]],
+            cmap="BuGn",
         )
     else:
         ax[2, 1].scatter(cchn[:, td1], cchn[:, td2], alpha=0.05)

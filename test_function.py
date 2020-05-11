@@ -413,7 +413,11 @@ def log_likelihood_test_contour_plot():
 
     cbar.set_ticklabels(["95% CI", "68% CI", ""])
 
-    plt.title("Log likelihood contour plot when H0=74 and M=-19.23 are set")
+    plt.title("Log likelihood contour plot when we fix H0=74 and M=-19.23")
+
+    plt.xlabel("$\\Omega_m$")
+
+    plt.ylabel("$\\Omega_\\Lambda$")
 
     plt.show()
 
