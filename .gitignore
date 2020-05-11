@@ -6,3 +6,6 @@
 .vscode/settings.json
 __pycache__/prior_likelihood.cpython-37.pyc
 __pycache__/theoretical_mag.cpython-37.pyc
+*.pyc
+*.pyo
+.DS_store

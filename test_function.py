@@ -26,6 +26,7 @@ from lambda_cdm_functions import lambda_cdm_log_likelihood
 from lambda_cdm_functions import lambda_cdm_log_prior
 from core_mcmc_functions import chain
 from core_mcmc_functions import metropolis
+from core_mcmc_functions import convergence_test
 
 
 def test_mag_func_omegaK_is_0():
@@ -590,3 +591,24 @@ def mcmc_lambda_cdm_test():
     ), "The chain doesn't converge to the right Omega_M value"
 
     print("mcmc chain works perfectly for the lambda cdm model")
+
+
+def convergence_test_test():
+    """
+    very simple unit test:
+
+        first, verify failure on a monotonically increasing 2-parameter chain
+        second, we verify sucess on a trivially converged 2-parameter chain that is all 1s
+    """
+    convergence_fail = np.zeros((100, 2))
+    convergence_fail[:, 0] = np.linspace(0, 100, 100)
+    convergence_fail[:, 1] = np.linspace(100, 200, 100)
+    convergence_sucess = np.ones((100, 2))
+
+    true_false, _1, _2 = convergence_test(convergence_fail, 30, 0.01)
+    assert true_false is False, "test gave false positive"
+
+    true_false, _1, _2 = convergence_test(convergence_sucess, 30, 0.01)
+    assert true_false is True, "test gave false Negative"
+
+    print("convergence_test accurate for all test cases")
