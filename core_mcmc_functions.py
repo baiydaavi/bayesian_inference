@@ -384,7 +384,6 @@ def estimate_covariance(chain, scaling=1, trim_ratio=0.25):
         this is the covariance matrix
     """
     cutoff = int(trim_ratio * len(chain[:, 0]))
-    cchn = chn[cutoff:, :]
+    cchn = chain[cutoff:, :]
     cov = np.cov(cchn, y=None, rowvar=False)
     return scaling * cov / np.max(np.abs(cov))
-
