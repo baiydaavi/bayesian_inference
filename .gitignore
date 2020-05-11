@@ -1,6 +1,7 @@
 /.vscode/
 /.ipynb_checkpoints/
-/__pycache__/
+__pycache__/
 *.json
 *.png
 *.pyc
+*.pyo
