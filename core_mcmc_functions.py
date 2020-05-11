@@ -1,3 +1,9 @@
+""" 
+This file contains the definition of all the functions that are 
+involved in running the mcmc chain and plotting the resulting
+trace and histogram plots.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -10,8 +16,11 @@ def metropolis(
     params, candidate_params, data, prior_func, likelihood_func, prior_mode="uniform"
 ):
     """
-    this is the function that decides if we keep trials or not, it is called inside of the mcmc chain algorithm.
-    it operates in the log-likelyhood basis-- so products/quotients of likelyhoods become sums/differences 
+    this is the function that performs the metropolis-hastings algorithm.
+    This function decides if we keep trials or not, it is called inside 
+    of the mcmc chain algorithm. In this function, we compare the log 
+    likehood value instead of the likelihood values -- so products/quotients
+    of likelihoods become sums/differences.
 
     parameters
     ----------
@@ -21,39 +30,44 @@ def metropolis(
     candidate_params : list of dimensions expected by likelihood_func/prior_func
         potential new parameters values to move to
 
-    data :  whatever format data that likelyhood_function needs as an input
-        the dataset we are running the MCMC on
+    data : whatever format data that likelihood_function needs as an 
+        input the dataset we are running the MCMC on
 
     prior_func : function with inputs (params, magnitude_mode=arg)
-        function that calculates the log of the prior probability of our set of parameters
-        this function should return the string 'forbidden' if forbidden parameter ranges are
-        entered.
+        function that calculates the log of the prior probability of our
+        set of parameters this function should return the string 'forbidden'
+        if forbidden parameter ranges are entered.
 
     likelihood_func : function with inputs: (params, data)
-        function that calculates the log likelyhood of our set of parameters given the data
+        function that calculates the log likelihood of our set of parameters 
+        given the data
 
-    prior_mode : an input that is recognized by the prior function as mag_mode=priorm_mode
-        if set to 'uniform', then the prior function will be skipped completely as long as the
-        parameters are within allowed regions.
+    prior_mode : an input that is recognized by the prior function as 
+        mag_mode=prior_mode. It tells you what prior to use for M 
+        (uniform or gaussian).
 
     returns
     -------
     True : if we should accept the move to candidate params
-    False : if we shou;d reject the move to candidate params
+    False : if we should reject the move to candidate params
 
     """
+
+    # Checking if the candidate parameters are in the forbidden regime
+
     if prior_func(candidate_params, magnitude_mode=prior_mode) == "forbidden":
         return False
 
     else:
 
+        # Function that calculate the posterior probability for the given set
+        # of parameters.
+
         def get_log_prob(params):
-            if prior_mode == "uniform":
-                return likelihood_func(params, data)
-            else:
-                return prior_func(params, magnitude_mode=prior_mode) + likelihood_func(
-                    params, data
-                )
+
+            return prior_func(params, magnitude_mode=prior_mode) + likelihood_func(
+                params, data
+            )
 
         threshhold = np.exp(
             min(0, get_log_prob(candidate_params) - get_log_prob(params))
@@ -79,13 +93,13 @@ def chain(
     prior_mode="uniform",
 ):
     """
-    this is the core function that makes our MCMC chain, it relies on the metropolis and convergence_test functions defined in this document
-
+    this is the core function that makes our MCMC chain, it relies on the
+    metropolis and convergence_test functions defined in this document.
 
     parameters
     ----------
 
-    data :  whatever format data that likelyhood_function needs as an input
+    data :  whatever format data the likelihood function needs as an input
         the dataset we are running the MCMC on
 
     max_trials : int
@@ -98,12 +112,17 @@ def chain(
         the maximum allowed percent change for reaching convergence, .01 means 1%
 
     start_state : list of dimensions expected by likelihood/prior functions
-        initial values of all
+        initial values of all the cosmological parameters
 
-    variances : None, 1-D list or array, or 2D numpy array
+    gen_variances : None, 1-D list or array, or 2D numpy array
         sets the variance for generating new samples using np.random.multivariate_normal
-        if None: uses a hardcoded non-diagonal covariance matrix
-        if 1-D list or array : uses a diagonal covariance matrix with diagonal elements = list elements
+        if None: uses a hardcoded non-diagonal covariance matrix that was found
+        empirically for case that only includes the statistical error
+        if "systematic": uses a hardcoded non-diagonal covariance matrix that
+        was found empirically for case that includes both the statistical and 
+        systematic error
+        if 1-D list or array : uses a diagonal covariance matrix with diagonal
+        elements = list elements
         if 2-D array : uses the 2D array as the covariance matrix
 
     prior_func : function with inputs (params, magnitude_mode=arg)
@@ -121,6 +140,9 @@ def chain(
     rej : numpy array of dimension [N, number of parameters]
         these are the samples that got rejected by the algorithm,
         will have np.nan for the whole row if the trial was accepted
+    convergence_value: numpy array of dimension start_state
+        Return the values of the parameters at which the convergence
+        happened. Return an empty array if convergence failed.
     """
     chain = []
     rejects = []
@@ -128,17 +150,13 @@ def chain(
     i = 0
     convergence = False
 
-    # these are two hardcoded covariance matrices for the generating function, for the cases of sys+stat error and one for just stat
-    # estiamted by looking at the covariance matrices of long chains generated by diagonal covariance matrices.
-    if gen_variances == "systematic":
-        covariance = np.array(
-            [
-                [2.282e-3, 2.729e-3, -3.856e-4, -7.165e-5],
-                [2.729e-3, 4.202e-3, 1.005e-2, 1.713e-5],
-                [-3.856e-4, 1.005e-2, 1.000e0, 2.662e-2],
-                [-7.165e-5, 1.713e-5, 2.662e-2, 7.561e-4],
-            ]
-        )
+    # Calculating the covariance matrix. If gen_variances is provides as a
+    # 1-d or 2-d array then use that for the covariance matrix. Otherwise
+    # There are two hardcoded covariance matrices for the generating function,
+    # for the cases of sys+stat error and one for just stat that are estimated
+    # by looking at the covariance matrices of long chains generated by diagonal
+    # covariance matrices.
+
     if gen_variances is None:
         covariance = 0.1 * np.array(
             [
@@ -148,15 +166,36 @@ def chain(
                 [0.0, 0.0, 0.0, 0.0],
             ]
         )
+    elif gen_variances == "systematic":
+        covariance = np.array(
+            [
+                [2.282e-3, 2.729e-3, -3.856e-4, -7.165e-5],
+                [2.729e-3, 4.202e-3, 1.005e-2, 1.713e-5],
+                [-3.856e-4, 1.005e-2, 1.000e0, 2.662e-2],
+                [-7.165e-5, 1.713e-5, 2.662e-2, 7.561e-4],
+            ]
+        )
+
+    elif len(np.shape(gen_variances)) == 1:
+        covariance = np.diag(gen_variances)
+
     else:
-        if len(np.shape(gen_variances)) == 1:
-            covariance = np.diag(gen_variances)
-        if len(np.shape(gen_variances)) == 2:
-            covariance = gen_variances
+        covariance = gen_variances
+
+    # Start running the chain and end if you reach the maximum number
+    # of trials or the chain converges.
 
     while convergence is False and i < max_trials:
+
+        # generate the candidate parameters
+
         candidate = np.random.multivariate_normal(current, covariance)
+
         i += 1
+
+        # Accept ot reject the candidate parameters according to the
+        # metropolis-hastings algorithm
+
         if metropolis(
             current, candidate, data, prior_func, likelihood_func, prior_mode=prior_mode
         ):
@@ -166,19 +205,29 @@ def chain(
             rejects.append(candidate)
         chain.append(current)
 
+        # check if the chain coverged else keep running
+
         convergence, diff_booleans, convergence_value = convergence_test(
             chain, convergence_window, convergence_threshhold
         )
+
+        # printing the progress
+
         print("done {:2.1%} of max trials".format(i / max_trials), end="\r")
 
     rej = np.asarray(rejects)
     chn = np.asarray(chain)
 
-    # print('total trials:{}. accepted {:.1f}% of trials'.format(i, 100*(1-sum(rej[:, 0] > 0)/i)))
+    # If the chain did not converge in the maximum number of trial, then say
+    # the convergence failed and show which parameters haven't converged.
 
     if convergence is False:
         print("convergence failed. converged parameters:", diff_booleans)
         return chn, rej, None
+
+    # if the chain has converged, then say the chain converged to whatever
+    # parameter set the convergence occured at.
+
     else:
         print(
             "The chain has converged to the values:",
@@ -190,9 +239,11 @@ def chain(
 
 def convergence_test(chain, convergence_window, convergence_threshhold):
     """
-    this function exists solely to be called inside of the chain function, and it does a simple convergence test
-    where we compare the average of the parameters over two non-overlapping windows of our most recent chain data
-    and claim convergence when those avergaes are equal to each other within a tolerance: convergence_threshold
+    this function exists solely to be called inside of the chain function,
+    and it does a simple convergence test where we compare the average of 
+    the parameters over two non-overlapping windows of our most recent chain 
+    data and claim convergence when those avergaes are equal to each other
+    within a tolerance: convergence_threshold
 
     parameters
     ----------
@@ -210,17 +261,36 @@ def convergence_test(chain, convergence_window, convergence_threshhold):
     -------
 
     True or False : boolean
-        True if the mean of the most recent L samples is within the threshold % of the mean over the previous L samples for all params
-        False if not any of the avergaes has changed by more than the threshold %
+        True if the mean of the most recent L (L is given by the convergence_window)
+        samples is within the threshold % of the mean over the previous L samples for
+        all params. False if not any of the avergaes has changed by more than the 
+        threshold %.
 
     diff_booleans : 1-D list of True/False, length equal to number of params
-        True/False depending if the corresponding parameter has converged or not
+        True/False depending if the corresponding parameter has converged or not.
+
+    new_means or []: list of dimension of the parameter set
+        return the mean mean of the most recent L samples if convergence occured
+        else return an empty array.
     """
+
+    # Do convergence testing if the sample size is large enough for the
+    # convergence testing.
+
     if len(chain) > 2 * convergence_window:
+
+        # mean of the old L samples
+
         old_means = np.mean(
             chain[-2 * convergence_window + 1 : -convergence_window], axis=0
         )
+
+        # mean of the most recent L samples
+
         new_means = np.mean(chain[-convergence_window:-1], axis=0)
+
+        # Check for convergence
+
         diff_booleans = (
             abs(new_means - old_means) / abs(old_means) < convergence_threshhold
         )
@@ -230,6 +300,10 @@ def convergence_test(chain, convergence_window, convergence_threshhold):
 
         else:
             return False, diff_booleans, []
+
+    # if the sample size is not large enough for the convergence testing,
+    # simply return false.
+
     else:
         return False, [], []
 
@@ -248,33 +322,37 @@ def plot_chain_behaviour(
     save=False,
 ):
     """
-    this function is for plotting trace plots of all 4 parameters, and 1-D/2D histograms of w/e 2 paramters we want.
+    this function is for plotting trace plots of all 4 parameters, and
+    1-D/2D histograms of w/e 2 paramters we want.
 
     parameters
     ----------
     chain : numpy array
-        the chain we are plottinh
+        the chain we are plotting
     rejects : numpy array, same shape as chain
         the rejected samples from the chain
     plot_refects = True/False
         False if you dont want to plot rejects
     one_d_his_1, one_d_his_2, two_d_his1, two_d_his_2 : ints
-        these are the indices of the parameters you want to plot in the histograms (default is 0,1 for the two omegas)
+        these are the indices of the parameters you want to plot in the
+        histograms (default is 0,1 for the two omegas)
     one_d_bins, two_d_bins : ints
         number of bins for our 1d and 2d histograms
     two_d_histogram : True/False
         if False, we plot a scatterplot instead of histogram
     save : True/False
-        True for save, False for no save
+        True for saving the plot
 
     returns
     -------
     shows and/or saves plots, no returns
     """
+
     od1 = one_d_hist_1
     od2 = one_d_hist_2
     td1 = two_d_hist_1
     td2 = two_d_hist_2
+
     names = dict(
         [(0, "$\\Omega_m$"), (1, "$\\Omega_\\Lambda$"), (2, "$H_0$"), (3, "$M$")]
     )
@@ -288,7 +366,7 @@ def plot_chain_behaviour(
     hist_or_scatter = dict([(True, "histogram"), (False, "scatter plot")])
 
     fig.suptitle(
-        "plots 1-4 are trace plots, 5 is a 1D historgram of 1 or 2 parameters and 6 is a 2D"
+        "plots 1-4 are trace plots, 5 is a 1D historgram of 1 or 2 parameters and 6 is a 2D "
         + hist_or_scatter[two_d_histogram]
     )
 
@@ -308,10 +386,12 @@ def plot_chain_behaviour(
         ax[1, 0].plot(rejects[:, 2], "+", alpha=rej_alpha)
         ax[1, 1].plot(rejects[:, 3], "+", alpha=rej_alpha)
 
-    # when doing the averages, we drop the first 25% of samples, cchn is the chain with the first 25%
-    # of samples removed.
+    # when doing the averages, we drop the first 25% of samples, cchn is
+    # the chain with the first 25% of samples removed.
+
     cutoff = int(len(chain[:, 0]) / 4)
     cchn = chain[cutoff:, :]
+
     mu1 = np.mean(cchn[:, od1])
     mu2 = np.mean(cchn[:, od2])
     std1 = np.std(cchn[:, od1])
@@ -376,19 +456,25 @@ def estimate_covariance(chain, scaling=1, trim_ratio=0.25):
     """
     params
     -----
-    chain: an array where the variables are different columns and rows are observations
-        we will estimate the covariance b/w these variables for this data set
+    chain: an array where the variables are different columns and
+    rows are observations
+        we will estimate the covariance b/w these variables for this
+        data set
     scaling: float
-        scale the maximum value in the covariance matrix to be this number, genrally <=1
+        scale the maximum value in the covariance matrix to be this
+        number, genrally <=1
     trim_ratio: float > 0 and < 1
-        this is the ratio of data that we want to drop before looking at covariance
+        this is the ratio of data that we want to drop before looking
+        at covariance
 
     returns
     -------
     cov: N X N np array, N is the number of columns in the input chain
         this is the covariance matrix
     """
+
     cutoff = int(trim_ratio * len(chain[:, 0]))
     cchn = chain[cutoff:, :]
     cov = np.cov(cchn, y=None, rowvar=False)
+
     return scaling * cov / np.max(np.abs(cov))
