@@ -153,21 +153,50 @@ def test_mag_func_omegaK_is_neg():
 
 def likelihood_test_fake_data():
 
+    """ Testing the likelihood function on fake Supernovae data.
+
+    This function test the likelihood function on fake Supernovae
+    data that is created for a given set of the cosmological 
+    parameters in the same format as the real SN data file. We
+    calculate the likelihood over a range of Omega_M and Omega_lambda
+    parameters and then verify that the maximum of the log likelihood
+    function corresponds to the Omega_M and Omega_lambda values used
+    to create the fake data.
+    """
+    # The cosmological parameters used to create the fake data.
+
     test_params = [0.3, 0.6, 75, -19.23]
+
+    # We create a redshift array with 200 datapoints that takes
+    # values starting at redshift of 0.002 and goes up to 2.
 
     fake_data = pd.DataFrame(np.linspace(0.002, 2.0, 200), columns=["zcmb"])
 
-    fake_data["dmb"] = np.random.uniform(0, 0.001, len(fake_data.zcmb))
+    # Adding the 'dmb' column to the fake data that mimics
+    # the statistical error. We choose the error to be very low.
+
+    fake_data["dmb"] = np.random.uniform(0, 0.01, len(fake_data.zcmb))
 
     mean = mag_model(test_params, fake_data.zcmb)
 
-    cov = np.diag(fake_data.dmb)
+    cov = np.diag(pow(pd.Series.to_numpy(fake_data.dmb), 2))
+
+    # Calculate the apparent magnitude values for each redshift in the
+    # fake data using a normal distribution such that mean is calculated
+    # using the apparent magnitude function and the variance is given by
+    # the square of the fake statistical error given by the 'dmb' column.
 
     fake_data["mb"] = np.random.multivariate_normal(mean, cov)
+
+    # Create an array of the Omega_M and Omega_lambda values over which
+    # the log likelihood values are calculated.
 
     omega_arr = np.arange(0.1, 1.0, 0.01)
 
     likelihood_mat = np.zeros((len(omega_arr), len(omega_arr)))
+
+    # Calculate the log likelihood values over all values of Omega_M and
+    # Omega_lambda.
 
     for i, omega_m_item in enumerate(omega_arr):
         for j, omega_l_item in enumerate(omega_arr):
@@ -175,25 +204,236 @@ def likelihood_test_fake_data():
                 [omega_m_item, omega_l_item, test_params[2], test_params[3]], fake_data
             )
         print("{:2.1%} done".format(i / len(omega_arr)), end="\r")
+
+    # Find the value of Omega_M and Omega_lambda for which the log likelihood
+    # is the highest.
+
     max_omega_m = omega_arr[int(np.argmax(likelihood_mat) / len(omega_arr))]
     max_omega_l = omega_arr[int(np.argmax(likelihood_mat) % len(omega_arr))]
+
+    # The max values found above should be close to the Omega_M and Omega_lambda
+    # values used to create a fake data.
 
     assert all(
         np.isclose(
             [max_omega_m, max_omega_l], [test_params[0], test_params[1]], atol=0.01
         )
-    ), "likelihood function does not work"
+    ), "Likelihood function does not work"
 
     print("Likelihood function works well on the fake data.")
 
 
+def likelihood_test_contour_plot():
+
+    """Testing the likelihood function 
+
+    This function does a brute force likelihood sweep of the omegas
+    setting M=74 and H0=-19.23. It might not be a 'unit test' 
+    (in that there is no simple assert statement), but we found it 
+    to be invaluable when diagnosing bugs.
+
+    returns
+    ------
+    Shows the log likelihood contour plot.
+    """
+
+    # import Supernovae data
+
+    data = pd.read_csv("lcparam_DS17f.txt", sep=" ")
+
+    # Create an array of the Omega_M and Omega_lambda values over which
+    # the log likelihood values are calculated.
+
+    resolution = 80
+    p1_min = 0.1
+    p1_max = 1.2
+    p2_min = 0.5
+    p2_max = 1.15
+
+    p1 = np.linspace(p1_min, p1_max, resolution)
+    p2 = np.linspace(p2_min, p2_max, resolution)
+
+    x, y = np.meshgrid(p1, p2)
+
+    # Calculate the log likelihood values over all values of Omega_M and
+    # Omega_lambda.
+
+    z = np.zeros((resolution, resolution))
+
+    for i, p1_item in enumerate(p1):
+        for j, p2_item in enumerate(p2):
+            z[i, j] = likelihood([p1_item, p2_item, 74, -19.23], data)
+
+    # Plotting the contour plot
+
+    c1 = np.max(z) - 2.3 / 2  # the value corresponding to 68% CI.
+    c2 = np.max(z) - 6.17 / 2  # the value corresponding to 95% CI.
+
+    levels = [c2, c1, np.max(z)]  # Defining the contour levels
+
+    contour = plt.contourf(x, y, z, levels)
+
+    cbar = plt.colorbar(contour)
+
+    cbar.set_ticklabels(["95% CI", "68% CI", ""])
+
+    plt.title("Log likelihood contour plot when H0=74 and M=-19.23 are set")
+
+    plt.show()
+
+
+def metropolis_test():
+
+    """ Testing the metropolis function.
+
+    Unit test for the metropolis part of the codebase. For this test, we choose a
+    uniform prior and we choose the likelihood function to be a gaussian. We then 
+    create a fake data set where we know the answer by setting the numpy seed=0.
+    Using this data set, we first verify that metropolis returns True when the 
+    proposed jump is to a higher likelihood region. Then, we verify that the jumps
+    to a lower likelihood region have approximately the correct acceptance proportion
+    over 10,000 trials. The correct proportion was calibrated to be ~45.5%, but it 
+    allows a small region around that, because we are taking finite samples.
+
+    """
+
+    def log_likelihood(data, param):
+        return -0.5 * np.sum((data - param) ** 2)
+
+    def uniform_log_prior(params, magnitude_mode="uniform"):
+        return 0
+
+    # before we create our fake data set, we
+    # set the seed to make sure that we dont get a statistically
+    # anomalous data set
+
+    np.random.seed(0)
+
+    test_data = np.random.normal(1, 0.5, 100)
+
+    # test if we correctly jump to a higher likelihood state
+
+    kwargs = {
+        "prior_func": uniform_log_prior,
+        "likelihood_func": log_likelihood,
+        "prior_mode": "uniform",
+    }
+
+    hopefully_true = metropolis(0.5, 0.99, test_data, **kwargs)
+
+    assert hopefully_true is True, "failed to accept jump to higher likelihood state"
+
+    # make sure we have the proper ratio of jumps to a well known lower likelihood state, over 10000 samples
+    test_list = np.zeros(10000)
+    # reset the seed, so we can generate a random sample for the next step
+
+    np.random.seed()
+
+    # Check if we have the proper ratio of jumps to a well known lower likelihood
+    # state, over 10000 samples.
+
+    # Finding the expected acceptance ratio.
+
+    asymptotic_acceptance_prob = np.exp(
+        log_likelihood(test_data, 0.7) - log_likelihood(test_data, 1)
+    )
+
+    # Finding the acceptance ratio for the fake data
+
+    test_list = np.zeros(500000)
+
+    for i in range(len(test_list)):
+        test_list[i] = metropolis(1, 0.7, test_data, **kwargs)
+
+    ratio = sum(test_list) / len(test_list)
+
+    # Checking if the acceptance ratio for the fake data is close to the
+    # expected ratio with a tolerance of 10%. (add the reasoning for tolerance)
+
+    assert ratio > 0.9 * asymptotic_acceptance_prob, "rejected too many samples"
+    assert ratio < 1.1 * asymptotic_acceptance_prob, "accepted too many samples"
+
+    return "The metropolis function works well."
+
+
+def chain_test():
+
+    """ Testing the mcmc chain.
+
+    This runs the mcmc chain, setting all paramters but the Omega_M fixed
+    and checks if the value of Omega_M converges to a value that 
+    corresponds to the maximum log likelihood value when all the other 
+    parameters remain the same. 
+    """
+
+    # import Supernovae data
+
+    data = pd.read_csv("lcparam_DS17f.txt", sep=" ")
+
+    # Running the mcmc chain and outputting the values at which
+    # the chain converges.
+
+    _, _, convergence_value = chain(
+        data,
+        20000,
+        400,
+        0.01,
+        start_state=[0.2, 0.82, 74, -19.23],
+        gen_variances=[0.05, 0, 0, 0],
+        prior_mode="uniform",
+    )
+
+    # Creating an array of Omega_M values over which the log likelihood
+    # values are calculated.
+
+    om_arr = np.linspace(0.1, 1.0, 100)
+
+    lik_arr = np.zeros(100)
+
+    # Calculating the log likelihood values.
+
+    for i in range(100):
+        lik_arr[i] = likelihood([om_arr[i], 0.82, 74, -19.23], data)
+
+    # Finding the value of Omega_M corresponding to the max likelihood.
+
+    max_omega_m = om_arr[np.argmax(lik_arr)]
+
+    # Checking if mcmc chain converged to the correct Omega_M value.
+
+    assert np.isclose(
+        convergence_value[0], max_omega_m, atol=0.01
+    ), "The chain failed to converge towards max likelihood value for Omega_M"
+
+    print("The mcmc chain finds the correct value for Omega_M")
+
+
 def mcmc_lambda_cdm_test():
 
-    # import main data
-    data_lcparam = pd.read_csv("lcparam_DS17f.txt", sep=" ")
+    """ Testing the mcmc chain.
 
-    chn, _, convergence_value = chain(
-        data_lcparam,
+    This function tests the mcmc chain for the lambda CDM model
+    which has only three parameters omega_M, H0 and M. We know
+    from Scolnic et al 18 that the the Omega_M value for the
+    lambda CDM model should converge to 0.284 +/- 0.012. 
+    
+    All the functions for the lambda CDM model is available in
+    the lambda_cdm_function.py file. I would recommend check that
+    you check out that file for a better understanding of this 
+    test function.
+    """
+
+    # import Supernovae data
+
+    data = pd.read_csv("lcparam_DS17f.txt", sep=" ")
+
+    # Running the mcmc chain and outputting the values at which
+    # the chain converges. We input the lambda cdm prior and
+    # likelihood function for the prior and likelihood function
+    # input to this chain.
+
+    _, _, convergence_value = chain(
+        data,
         20000,
         1500,
         0.005,
@@ -204,167 +444,11 @@ def mcmc_lambda_cdm_test():
         prior_mode="uniform",
     )
 
+    # The value of Omega_M at which the chain converged should be
+    # equal to 0.284 with an error of 0.012.
+
     assert np.isclose(
-        convergence_value[0], 0.284, atol=0.01
+        convergence_value[0], 0.284, atol=0.012
     ), "The chain doesn't converge to the right Omega_M value"
 
     print("mcmc chain works perfectly for the lambda cdm model")
-
-
-Data_lcparam = pd.read_csv("lcparam_DS17f.txt", sep=" ")
-
-
-def likelihood_test(
-    resolution,
-    p1_min=0.1,
-    p1_max=1.2,
-    p2_min=0.5,
-    p2_max=1.15,
-    data=Data_lcparam,
-    p1_slice=0.52,
-    p2_slice=0.82,
-    two_d=True,
-    save=False,
-):
-    """
-    this function does a brute force likelihood sweep of the omegas setting M=74 and H0=-19.23. It might not be a
-    'unit test' (in that there is no simple assert statement), but we found it to be invaluable when diagnosing bugs
-
-    params
-    -----
-    resolution : int
-        number of points to sample on each axis
-    p1_min, p1_max, p2_min, p2_max : numbers in the domain of the respective omega
-        the min/max value of the omegas we want to test
-    data: pandas data frame
-        this is the data
-    p1_slice(p2_slice) : numbers in the domain of omega_m(omega_lambda)
-        this is the value we hold constant of each parameter when making the 1d plots
-    two_d : True/False
-        if false, we only do 1D plots. will be much faster
-    save: True/False
-        True for save, False for no save
-
-    returns
-    ------
-    shows and/or saves plots. no returns
-    """
-    p1 = np.linspace(p1_min, p1_max, resolution)
-    p2 = np.linspace(p2_min, p2_max, resolution)
-    p1_lik = np.zeros(resolution)
-    p2_lik = np.zeros(resolution)
-
-    names = dict([(0, "$\\Omega_m$"), (1, "$\\Omega_\\Lambda$")])
-
-    for i, p1_item in enumerate(p1):
-        p1_lik[i] = likelihood([p1_item, p2_slice, 74, -19.23], data)
-    for j, p2_item in enumerate(p2):
-        p2_lik[j] = likelihood([p1_slice, p2_item, 74, -19.23], data)
-
-    plt.rc("axes", titlesize=12)
-    plt.rc("axes", labelsize=18)
-    plt.rc("figure", titlesize=20)
-
-    if two_d:
-        fig, ax = plt.subplots(1, 3, figsize=(18, 5))
-    else:
-        fig, ax = plt.subplots(1, 2, figsize=(12, 5))
-
-    for item in ax:
-        item.set_xlabel(names[0])
-        item.set_ylabel("log(likelihood)")
-
-    ax[0].plot(p1, p1_lik)
-    ax[0].set_title(
-        "log likelihood of " + names[0] + " when " + names[1] + " ={}".format(p2_slice)
-    )
-    ax[1].plot(p2, p2_lik)
-    ax[1].set_title(
-        "log likelihood of " + names[1] + " when " + names[0] + "={}".format(p1_slice)
-    )
-
-    if two_d:
-        x, y = np.meshgrid(p1, p2)
-        z = np.zeros((resolution, resolution))
-        for i, p1_item in enumerate(p1):
-            for j, p2_item in enumerate(p2):
-                z[i, j] = likelihood([p1_item, p2_item, 74, -19.23], data)
-                print("{:2.1%} done".format(i / resolution), end="\r")
-
-        c1 = np.max(z) - 2.3 / 2
-        c2 = np.max(z) - 6.17 / 2
-        contours = [c2, c1, np.max(z)]
-        c = ax[2].contour(x, y, z, contours)
-        fig.colorbar(c, ax=ax[2])
-        ax[2].set_title("log_likelihood when H0=74 and M=-19.23 are set")
-    plt.show()
-    if save:
-        plt.savefig("likelihood_test{}".format(resolution))
-
-
-def chain_test(data=Data_lcparam):
-    """
-    this runs the chain algorithm, setting 3 paramters fixed and makes sure that
-    the third parameter converges to the value that is the maximum likelihood value
-    when the others are fixed. returns an assert error if it fails
-    """
-    chn, _1, _2 = chain(
-        data,
-        1000,
-        400,
-        0.01,
-        start_state=[0.2, 0.82, 74, -19.23],
-        gen_variances=[0.05, 0, 0, 0],
-        prior_mode="uniform",
-    )
-    mu = np.mean(chn[200:, 0])
-    assert mu > 0.36 and mu < 0.4, "chain failed to head towards max likelihood "
-    print("no problems detected")
-
-
-def metropolis_test():
-    """
-    Unit test for the metropolis part of the codebase. First, we create simple likelihood (shifted gaussian) and prior(uniform)
-    Then, we make a data set where we know the answer by setting the numpy seed=0.
-    Using this data set, we first verify that metropolis returns True when the proposed jump is to a higher likelihood region
-    Then, we varify that jumps to lower likelihood region have approximately correct acceptance proportion over 10,000 trials.
-    We expect over 10,000 trials that the proportions are relaively close to the aymptotic value, so we use a tolerance of 10%
-    """
-
-    def log_likelihood(data, param):
-        return -0.5 * np.sum((data - param) ** 2)
-
-    def uniform_log_prior(params, magnitude_mode="uniform"):
-        return 0
-
-    # set the seed to make sure that we dont get a statistically
-    # anomalous data set
-    np.random.seed(0)
-    test_data = np.random.normal(1, 0.5, 100)
-
-    # test if we correctly jump to a higher likelihood state
-    kwargs = {
-        "prior_func": uniform_log_prior,
-        "likelihood_func": log_likelihood,
-        "prior_mode": "uniform",
-    }
-    hopefully_true = metropolis(0.5, 0.99, test_data, **kwargs)
-    assert hopefully_true is True, "failed to accept jump to higher likelihood state"
-
-    # make sure we have the proper ratio of jumps to a well known lower likelihood state, over 10000 samples
-    test_list = np.zeros(10000)
-    # reset the seed, so we can generate a random sample for the next step
-    np.random.seed()
-
-    asymptotic_acceptance_prob = np.exp(
-        log_likelihood(test_data, 0.9) - log_likelihood(test_data, 1)
-    )
-
-    for i in range(len(test_list)):
-        test_list[i] = metropolis(1, 0.9, test_data, **kwargs)
-
-    ratio = sum(test_list) / len(test_list)
-    assert ratio > 0.9 * asymptotic_acceptance_prob, "rejected too many samples"
-    assert ratio < 1.1 * asymptotic_acceptance_prob, "accepted too many samples"
-
-    return "its an old code, but it checks out"
