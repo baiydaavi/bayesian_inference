@@ -337,6 +337,8 @@ def metropolis_test():
     def uniform_log_prior(params, magnitude_mode="uniform"):
         return 0
 
+    # set the seed to make sure that we dont get a statistically
+    # anomalous data set
     np.random.seed(0)
     test_data = np.random.normal(1, 0.5, 100)
 
@@ -349,8 +351,9 @@ def metropolis_test():
     hopefully_true = metropolis(0.5, 0.99, test_data, **kwargs)
     assert hopefully_true is True, "failed to accept jump to higher likelihood state"
 
-    # make sure we have the propoer ratio of jumps to a well known lower likelihood state, over 10000 samples
+    # make sure we have the proper ratio of jumps to a well known lower likelihood state, over 10000 samples
     test_list = np.zeros(10000)
+    # reset the seed, so we can generate a random sample for the next step
     np.random.seed()
 
     asymptotic_acceptance_prob = np.exp(
