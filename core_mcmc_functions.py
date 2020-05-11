@@ -1,8 +1,9 @@
 import numpy as np
-from prior_likelihood import prior
-from prior_likelihood import likelihood
 import matplotlib.pyplot as plt
 import pandas as pd
+
+from prior_likelihood import log_prior
+from prior_likelihood import log_likelihood
 
 
 def metropolis(
@@ -73,8 +74,8 @@ def chain(
     convergence_threshhold=0.001,
     start_state=np.ones(4) + 1,
     gen_variances=np.ones(4) / 5,
-    prior_func=prior,
-    likelihood_func=likelihood,
+    prior_func=log_prior,
+    likelihood_func=log_likelihood,
     prior_mode="uniform",
 ):
     """

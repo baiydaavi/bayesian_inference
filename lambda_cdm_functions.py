@@ -62,7 +62,7 @@ def lambda_cdm_mag(params, redshift_data):
 
         f = lambda x: ((params[0] * ((1 + x) ** 3)) + (1 - params[0])) ** -0.5
 
-        eta, etaerr = integrate.quad(f, 0.0, redshift_data[i])
+        eta, _ = integrate.quad(f, 0.0, redshift_data[i])
 
         # note here that dL ends up being in units of pc
 
@@ -74,7 +74,7 @@ def lambda_cdm_mag(params, redshift_data):
 
 
 # made the default uniform, just for easier inputs when testing (kyle)
-def lambda_cdm_prior(params, magnitude_mode="uniform"):
+def lambda_cdm_log_prior(params, magnitude_mode="uniform"):
 
     """ This function calculates the prior.
 
@@ -112,7 +112,7 @@ def lambda_cdm_prior(params, magnitude_mode="uniform"):
         return -0.5 * pow((params[3] + 19.23) / 0.042, 2)
 
 
-def lambda_cdm_likelihood(params, data_lcparam, sys_error=None):
+def lambda_cdm_log_likelihood(params, data_lcparam, sys_error=None):
 
     """This function calculates the likelihood.
 

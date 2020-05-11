@@ -14,7 +14,7 @@ import math
 from theoretical_mag import calculate_apparent_mag as mag_model
 
 # made the default uniform, just for easier inputs when testing (kyle)
-def prior(params, magnitude_mode="uniform"):
+def log_prior(params, magnitude_mode="uniform"):
 
     """ This function calculates the prior.
 
@@ -64,7 +64,7 @@ def prior(params, magnitude_mode="uniform"):
         return -0.5 * pow((params[3] + 19.23) / 0.042, 2)
 
 
-def likelihood(params, data_lcparam, sys_error=None):
+def log_likelihood(params, data_lcparam, sys_error=None):
 
     """This function calculates the likelihood.
 

@@ -11,16 +11,16 @@ functions:
 """
 
 import numpy as np
-from prior_likelihood import prior
-from prior_likelihood import likelihood
+from prior_likelihood import log_prior
+from prior_likelihood import log_likelihood
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from theoretical_mag import calculate_apparent_mag as mag_model
 from lambda_cdm_functions import lambda_cdm_mag
-from prior_likelihood import likelihood
-from lambda_cdm_functions import lambda_cdm_likelihood
-from lambda_cdm_functions import lambda_cdm_prior
+from prior_likelihood import log_likelihood
+from lambda_cdm_functions import lambda_cdm_log_likelihood
+from lambda_cdm_functions import lambda_cdm_log_prior
 from core_mcmc_functions import chain
 from core_mcmc_functions import metropolis
 
@@ -195,7 +195,7 @@ def test_lambda_cdm_mag_func():
     print("output of the magnitude function for the lambda CDM model is correct")
 
 
-def likelihood_test_fake_data():
+def log_likelihood_test_fake_data():
 
     """ Testing the likelihood function on fake Supernovae data.
 
@@ -244,7 +244,7 @@ def likelihood_test_fake_data():
 
     for i, omega_m_item in enumerate(omega_arr):
         for j, omega_l_item in enumerate(omega_arr):
-            likelihood_mat[i, j] = likelihood(
+            likelihood_mat[i, j] = log_likelihood(
                 [omega_m_item, omega_l_item, test_params[2], test_params[3]], fake_data
             )
             print("{:2.1%} done".format(i / len(omega_arr)), end="\r")
@@ -262,14 +262,14 @@ def likelihood_test_fake_data():
         np.isclose(
             [max_omega_m, max_omega_l], [test_params[0], test_params[1]], atol=0.01
         )
-    ), "Likelihood function does not work"
+    ), "Log likelihood function does not work"
 
-    print("Likelihood function works well on the fake data.")
+    print("Log likelihood function works well on the fake data.")
 
 
-def likelihood_test_contour_plot():
+def log_likelihood_test_contour_plot():
 
-    """Testing the likelihood function 
+    """Testing the log likelihood function 
 
     This function does a brute force likelihood sweep of the omegas
     setting M=74 and H0=-19.23. It might not be a 'unit test' 
@@ -306,7 +306,7 @@ def likelihood_test_contour_plot():
 
     for i, p1_item in enumerate(p1):
         for j, p2_item in enumerate(p2):
-            z[i, j] = likelihood([p1_item, p2_item, 74, -19.23], data)
+            z[i, j] = log_likelihood([p1_item, p2_item, 74, -19.23], data)
 
     # Plotting the contour plot
 
@@ -341,7 +341,7 @@ def metropolis_test():
 
     """
 
-    def log_likelihood(data, param):
+    def gaussian_log_likelihood(data, param):
         return -0.5 * np.sum((data - param) ** 2)
 
     def uniform_log_prior(params, magnitude_mode="uniform"):
@@ -359,7 +359,7 @@ def metropolis_test():
 
     kwargs = {
         "prior_func": uniform_log_prior,
-        "likelihood_func": log_likelihood,
+        "likelihood_func": gaussian_log_likelihood,
         "prior_mode": "uniform",
     }
 
@@ -381,7 +381,7 @@ def metropolis_test():
     # Finding the expected acceptance ratio.
 
     asymptotic_acceptance_prob = np.exp(
-        log_likelihood(test_data, 0.85) - log_likelihood(test_data, 1)
+        gaussian_log_likelihood(test_data, 0.85) - gaussian_log_likelihood(test_data, 1)
     )
 
     # Finding the acceptance ratio for the fake data
@@ -439,7 +439,7 @@ def chain_test():
     # Calculating the log likelihood values.
 
     for i in range(100):
-        lik_arr[i] = likelihood([om_arr[i], 0.82, 74, -19.23], data)
+        lik_arr[i] = log_likelihood([om_arr[i], 0.82, 74, -19.23], data)
 
     # Finding the value of Omega_M corresponding to the max likelihood.
 
@@ -485,8 +485,8 @@ def mcmc_lambda_cdm_test():
         0.005,
         start_state=[0.8, 75, -19.23],
         gen_variances=[0.1, 1.0, 0],
-        prior_func=lambda_cdm_prior,
-        likelihood_func=lambda_cdm_likelihood,
+        prior_func=lambda_cdm_log_prior,
+        likelihood_func=lambda_cdm_log_likelihood,
         prior_mode="uniform",
     )
 
