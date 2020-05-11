@@ -175,6 +175,15 @@ def chain(
                 [-7.165e-5, 1.713e-5, 2.662e-2, 7.561e-4],
             ]
         )
+    elif gen_variances == "systematic_fix_M":
+        covariance = np.array(
+            [
+                [2.282e-3, 2.729e-3, -3.856e-4, 0],
+                [2.729e-3, 4.202e-3, 1.005e-2, 0],
+                [-3.856e-4, 1.005e-2, 1.000e0, 0],
+                [0, 0, 0, 0],
+            ]
+        )
 
     elif len(np.shape(gen_variances)) == 1:
         covariance = np.diag(gen_variances)
