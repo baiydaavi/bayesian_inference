@@ -4,7 +4,8 @@ This file contains all the test functions for the following
 functions:
 1. The function that calculates the apparent magnitude
 2. The function that calculates the apparent magnitude for
-   lambda CDM model.
+   lambda CDM model. We have this test because we use this
+   to do a test of the mcmc chain.
 3. The likelihood function
 4. The metropolis-hastings function
 5. The mcmc chain
@@ -371,7 +372,8 @@ def metropolis_test():
 
     np.random.seed()
 
-    # make sure we have the proper ratio of jumps to a well known lower likelihood state, over 100,000 samples
+    # make sure we have the proper ratio of jumps to a well known lower likelihood
+    # state, over 100,000 samples
 
     test_list = np.zeros(100000)
 
