@@ -22,7 +22,7 @@ def log_prior(params, magnitude_mode="uniform"):
     1. params - This is a list of the 4 cosmological parameters
     omega_m, omega_lambda, H_0 and M.
     2. magnitude_mode - This parameter decides whether the prior
-    on M (absolute magnitude) is 'uniform' or 'gaussian'.
+    on M (absolute magnitude) is 'uniform' or 'M_gaussian'.
 
     omega_m, omega_lambda and H_0 cannot take negative values therefore
     we choose a regime to be forbidden when at least one of 
