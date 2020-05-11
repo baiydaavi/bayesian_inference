@@ -203,6 +203,7 @@ def likelihood_test_fake_data():
             likelihood_mat[i, j] = likelihood(
                 [omega_m_item, omega_l_item, test_params[2], test_params[3]], fake_data
             )
+        print("{:2.1%} done".format(i / len(omega_arr)), end="\r")
 
     # Find the value of Omega_M and Omega_lambda for which the log likelihood
     # is the highest.
@@ -371,7 +372,7 @@ def chain_test():
         400,
         0.01,
         start_state=[0.2, 0.82, 74, -19.23],
-        variances=[0.05, 0, 0, 0],
+        gen_variances=[0.05, 0, 0, 0],
         prior_mode="uniform",
     )
 
@@ -430,7 +431,7 @@ def mcmc_lambda_cdm_test():
         1500,
         0.005,
         start_state=[0.8, 75, -19.23],
-        variances=[0.1, 1.0, 0],
+        gen_variances=[0.1, 1.0, 0],
         prior_func=lambda_cdm_prior,
         likelihood_func=lambda_cdm_likelihood,
         prior_mode="uniform",
