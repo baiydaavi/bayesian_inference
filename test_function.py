@@ -203,7 +203,7 @@ def likelihood_test_fake_data():
             likelihood_mat[i, j] = likelihood(
                 [omega_m_item, omega_l_item, test_params[2], test_params[3]], fake_data
             )
-        print("{:2.1%} done".format(i / len(omega_arr)), end="\r")
+            print("{:2.1%} done".format(i / len(omega_arr)), end="\r")
 
     # Find the value of Omega_M and Omega_lambda for which the log likelihood
     # is the highest.
