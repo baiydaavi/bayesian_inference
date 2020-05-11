@@ -1,19 +1,19 @@
 """ Defines the prior and likelihood functions.
 
-This file contains the functions for the prior and likelihood
-functions needed to calculate the posterior distribution over
-the cosmological parameters.
+This file contains the functions for the log prior and log 
+likelihood functions needed to calculate the posterior
+distribution over the cosmological parameters.
 """
 
 import numpy as np
 import pandas as pd
 import math
 
-# here is a stand-in for the apparent_mag function we will eventually want.
-# We should only have to replace this line of code (kyle)
-from theoretical_mag import calculate_apparent_mag as mag_model
+# Here we import the apparent_mag function.
 
-# made the default uniform, just for easier inputs when testing (kyle)
+from theoretical_mag import calculate_apparent_mag
+
+
 def log_prior(params, magnitude_mode="uniform"):
 
     """ This function calculates the prior.
@@ -25,22 +25,31 @@ def log_prior(params, magnitude_mode="uniform"):
     on M (absolute magnitude) is 'uniform' or 'gaussian'.
 
     omega_m, omega_lambda and H_0 cannot take negative values therefore
-    we choose the prior probability to be 0 when at least one of 
+    we choose a regime to be forbidden when at least one of 
     the three parameters goes negative( or when omega_m and/or 
-    omega_lambda gets higher than 2.5). For any other values of 
-    omega_m, omega_lambda, and H_0, we choose a uniform prior 
+    omega_lambda gets higher than 2.5). We also don't allow any values
+    of omega_m and omega_lambda that will cause the expression
+
+    Omega_M(1+z)^3 + Omega_Lambda + Omega_K(1+z)^2
+
+    to go negative because we have to calculate the sqaure root of the
+    above expression in the apparent magnitue function. For any other 
+    values of omega_m, omega_lambda, and H_0, we choose a uniform prior 
     probabiility.
     """
 
-    # Prior is 0 if omega_m and/or omega_lambda and/or H_0 are negative.
+    # Forbidden regime if omega_m and/or omega_lambda and/or H_0 are negative.
 
     if any(i < 0 for i in params[0:-1]):
         return "forbidden"
 
-    # Prior is 0 if omega_m and/or omega_lambda are greater than 2.5.
+    # Forbidden regime if omega_m and/or omega_lambda are greater than 2.5.
 
     if any(i > 2.5 for i in params[0:2]):
         return "forbidden"
+
+    # Forbidden regime if Omega_M(1+z)^3 + Omega_Lambda + Omega_K(1+z)^2 goes
+    # negative for the maximum redshift value in the Supernovae data.
 
     z_max = 1.62
 
@@ -66,14 +75,11 @@ def log_prior(params, magnitude_mode="uniform"):
 
 def log_likelihood(params, data_lcparam, sys_error=None):
 
-    """This function calculates the likelihood.
+    """This function calculates the log likelihood.
 
     Parameter:
     1. params - This is a list of the 4 cosmological parameters
     omega_m, omega_lambda, H_0 and M.
-    2. mu_model - Input the mu_model function that analytically
-    caculates mu. (Not needed if this is a part of the same file
-    that defines the function mu_model.)
     2. data_lcparam - Importing the data file that contains the
     redshift, aparent magnitude and the statistical error data.
     3. sys_error - This is a 40x40 matrix that contains the 
@@ -91,7 +97,7 @@ def log_likelihood(params, data_lcparam, sys_error=None):
     # Calculating the difference between the measured (app_mag)
     # and estimated apparent magnitude (mag_model).
 
-    diff_app_mag = app_mag - mag_model(params, data_lcparam.zcmb)
+    diff_app_mag = app_mag - calculate_apparent_mag(params, data_lcparam.zcmb)
 
     # Defining a 40x40 diagonal matrix whose diagonal entries
     # are the square of the corresponding statistical error.
@@ -110,10 +116,6 @@ def log_likelihood(params, data_lcparam, sys_error=None):
     else:
         inv_cov_matrix = np.linalg.inv(stat_error + sys_error)
 
+    # return the calculate log likelihood value.
+
     return -0.5 * (diff_app_mag @ inv_cov_matrix @ diff_app_mag)
-
-
-# data_lcparam = pd.read_csv("lcparam_DS17f.txt", sep=" ")
-# data_sys = pd.read_csv("sys_DS17f.txt", sep=" ")
-# data_sys.columns = ["sys_error"]
-# sys_error = np.reshape(pd.Series.to_numpy(data_sys.sys_error), (40, 40))

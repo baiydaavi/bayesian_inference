@@ -52,11 +52,7 @@ def calculate_apparent_mag(params, redshift_data):
             H0: present-day value of Hubble parameter [needs to be in km/s/Mpc]
             M: fiducial SN Ia absolute magnitude [dimensionless]
 
-    SNdata: 2D data table consisting of the following values for each 
-            SN Ia (in order)
-            mb: apparent magnitude in B band [dimensionless]
-            dmb: error on apparent magnitude [dimensionless]
-            zhel: redshift [dimensionless]
+    SNdata: array of the redshift data [dimensionless]
     
     Returns
     -------
