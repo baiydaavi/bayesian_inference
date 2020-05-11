@@ -174,7 +174,7 @@ def likelihood_test_fake_data():
             likelihood_mat[i, j] = likelihood(
                 [omega_m_item, omega_l_item, test_params[2], test_params[3]], fake_data
             )
-        # print("{:2.1%} done".format(i / len(omega_arr)), end="\r")
+        print("{:2.1%} done".format(i / len(omega_arr)), end="\r")
     max_omega_m = omega_arr[int(np.argmax(likelihood_mat) / len(omega_arr))]
     max_omega_l = omega_arr[int(np.argmax(likelihood_mat) % len(omega_arr))]
 
