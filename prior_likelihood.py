@@ -16,7 +16,7 @@ from theoretical_mag import calculate_apparent_mag
 
 def log_prior(params, magnitude_mode="uniform"):
 
-    """ This function calculates the prior.
+    """ This function calculates the log prior.
 
     Parameter:
     1. params - This is a list of the 4 cosmological parameters
@@ -61,7 +61,7 @@ def log_prior(params, magnitude_mode="uniform"):
     ):
         return "forbidden"
 
-    # Uniform prior on M
+    # Uniform prior
 
     if magnitude_mode == "uniform":
         return 0
@@ -95,7 +95,7 @@ def log_likelihood(params, data_lcparam, sys_error=None):
     app_mag = pd.Series.to_numpy(data_lcparam.mb)
 
     # Calculating the difference between the measured (app_mag)
-    # and estimated apparent magnitude (mag_model).
+    # and estimated apparent magnitude (calculate_apparent_mag).
 
     diff_app_mag = app_mag - calculate_apparent_mag(params, data_lcparam.zcmb)
 
