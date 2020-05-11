@@ -323,32 +323,32 @@ def metropolis_test():
 
     assert hopefully_true is True, "failed to accept jump to higher likelihood state"
 
-    # make sure we have the proper ratio of jumps to a well known lower likelihood state, over 10000 samples
-    test_list = np.zeros(10000)
+    # make sure we have the proper ratio of jumps to a well known lower likelihood state, over 100,000 samples
+    test_list = np.zeros(100000)
     # reset the seed, so we can generate a random sample for the next step
 
     np.random.seed()
 
     # Check if we have the proper ratio of jumps to a well known lower likelihood
-    # state, over 10000 samples.
+    # state, over 100,000 samples.
 
     # Finding the expected acceptance ratio.
 
     asymptotic_acceptance_prob = np.exp(
-        log_likelihood(test_data, 0.7) - log_likelihood(test_data, 1)
+        log_likelihood(test_data, 0.85) - log_likelihood(test_data, 1)
     )
 
     # Finding the acceptance ratio for the fake data
 
-    test_list = np.zeros(500000)
-
     for i in range(len(test_list)):
-        test_list[i] = metropolis(1, 0.7, test_data, **kwargs)
+        test_list[i] = metropolis(1, 0.85, test_data, **kwargs)
 
     ratio = sum(test_list) / len(test_list)
 
     # Checking if the acceptance ratio for the fake data is close to the
-    # expected ratio with a tolerance of 10%. (add the reasoning for tolerance)
+    # expected ratio with a tolerance of 10%, tolerance is chosen to be large-ish
+    # to avoid false negatives in the test. Since an actual error is likely to result
+    # in a wildly different probability.
 
     assert ratio > 0.9 * asymptotic_acceptance_prob, "rejected too many samples"
     assert ratio < 1.1 * asymptotic_acceptance_prob, "accepted too many samples"
