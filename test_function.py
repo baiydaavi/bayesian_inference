@@ -6,9 +6,10 @@ functions:
 2. The function that calculates the apparent magnitude for
    lambda CDM model. We have this test because we use this
    to do a test of the mcmc chain.
-3. The likelihood function
-4. The metropolis-hastings function
-5. The mcmc chain
+3. The prior function
+4. The likelihood function
+5. The metropolis-hastings function
+6. The mcmc chain
 """
 
 import numpy as np
@@ -19,6 +20,7 @@ import pandas as pd
 
 from theoretical_mag import calculate_apparent_mag as mag_model
 from lambda_cdm_functions import lambda_cdm_mag
+from prior_likelihood import log_prior
 from prior_likelihood import log_likelihood
 from lambda_cdm_functions import lambda_cdm_log_likelihood
 from lambda_cdm_functions import lambda_cdm_log_prior
@@ -194,6 +196,94 @@ def test_lambda_cdm_mag_func():
     ), "apparent magnitude function does not work when OmegaK = 0.0"
 
     print("output of the magnitude function for the lambda CDM model is correct")
+
+
+def test_log_prior():
+
+    """
+    This function tests the log prior function. We test the 
+    log prior function for three cases:
+    1. In the forbidden regime when omega_lambda goes negative,
+       it should return forbidden.
+    2. If the parameters are not in the forbidden regime and we 
+       want a uniform prior over all parameters, it should return 0.
+    3. If the parameters are not in the forbidden regime and we 
+       want a gaussian prior over M, it should return whatever value
+       the gaussian prior outputs.
+    """
+
+    # Checking the forbidden regime case
+
+    test_param_forbidden = [0.5, -0.714, 69.6, -19.23]
+
+    assert (
+        log_prior(test_param_forbidden, magnitude_mode="uniform") == "forbidden"
+    ), "Log prior function doesn't return forbidden when you enter the forbidden regime"
+
+    # Checking the uniform prior case
+
+    test_param_uniform = [0.3, 0.714, 69.6, -19.23]
+
+    assert (
+        log_prior(test_param_uniform, magnitude_mode="uniform") == 0
+    ), "Log prior function doesn't return 0 in the uniform prior regime"
+
+    # Checking the gaussian prior case
+
+    test_param_gaussian = [0.3, 0.714, 69.6, -19]
+
+    expected_output = -0.5 * pow((test_param_gaussian[3] + 19.23) / 0.042, 2)
+
+    assert (
+        log_prior(test_param_gaussian, magnitude_mode="M_gaussian") == expected_output
+    ), "Log prior function doesn't return the correct value for a gaussian prior"
+
+    print("The log prior function works perfectly")
+
+
+def test_lambda_cdm_log_prior():
+
+    """
+    This function tests the lambda CDM log prior function. We test 
+    the lambda CDM log prior function for three cases:
+    1. In the forbidden regime when omega_m goes negative,
+       it should return forbidden.
+    2. If the parameters are not in the forbidden regime and we 
+       want a uniform prior over all parameters, it should return 0.
+    3. If the parameters are not in the forbidden regime and we 
+       want a gaussian prior over M, it should return whatever value
+       the gaussian prior outputs.
+    """
+
+    # Checking the forbidden regime case
+
+    test_param_forbidden = [-0.1, 69.6, -19.23]
+
+    assert (
+        lambda_cdm_log_prior(test_param_forbidden, magnitude_mode="uniform")
+        == "forbidden"
+    ), "Lambda CDM log prior function doesn't return forbidden when you enter the forbidden regime"
+
+    # Checking the uniform prior case
+
+    test_param_uniform = [0.3, 69.6, -19.23]
+
+    assert (
+        lambda_cdm_log_prior(test_param_uniform, magnitude_mode="uniform") == 0
+    ), "Lambda CDM log prior function doesn't return 0 in the uniform prior regime"
+
+    # Checking the gaussian prior case
+
+    test_param_gaussian = [0.3, 69.6, -19]
+
+    expected_output = -0.5 * pow((test_param_gaussian[2] + 19.23) / 0.042, 2)
+
+    assert (
+        lambda_cdm_log_prior(test_param_gaussian, magnitude_mode="M_gaussian")
+        == expected_output
+    ), "Lambda CDM log prior function doesn't return the correct value for a gaussian prior"
+
+    print("The Lambda CDM log prior function works perfectly")
 
 
 def log_likelihood_test_fake_data():

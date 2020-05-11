@@ -111,7 +111,7 @@ def lambda_cdm_log_prior(params, magnitude_mode="uniform"):
     # M =19.23 +/- 0.042.
 
     else:
-        return -0.5 * pow((params[3] + 19.23) / 0.042, 2)
+        return -0.5 * pow((params[2] + 19.23) / 0.042, 2)
 
 
 def lambda_cdm_log_likelihood(params, data_lcparam, sys_error=None):

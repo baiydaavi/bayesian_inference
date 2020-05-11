@@ -120,7 +120,10 @@ def chain(
         empirically for case that only includes the statistical error
         if "systematic": uses a hardcoded non-diagonal covariance matrix that
         was found empirically for case that includes both the statistical and 
-        systematic error
+        systematic error with a gaussian prior over M.
+        if "systematic_fix_M": uses a hardcoded non-diagonal covariance matrix that
+        was found empirically for the case that includes both the statistical and 
+        systematic error keeping M fixed.
         if 1-D list or array : uses a diagonal covariance matrix with diagonal
         elements = list elements
         if 2-D array : uses the 2D array as the covariance matrix
@@ -166,6 +169,7 @@ def chain(
                 [0.0, 0.0, 0.0, 0.0],
             ]
         )
+
     elif gen_variances == "systematic":
         covariance = np.array(
             [
@@ -175,6 +179,7 @@ def chain(
                 [-7.165e-5, 1.713e-5, 2.662e-2, 7.561e-4],
             ]
         )
+
     elif gen_variances == "systematic_fix_M":
         covariance = np.array(
             [
