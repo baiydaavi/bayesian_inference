@@ -454,6 +454,9 @@ def plot_chain_behaviour(
 
 def estimate_covariance(chain, scaling=1, trim_ratio=0.25):
     """
+    This function calculates the hardcoded covariance matrix used
+    for the covariance matrix of the generating function.
+
     params
     -----
     chain: an array where the variables are different columns and
@@ -462,7 +465,7 @@ def estimate_covariance(chain, scaling=1, trim_ratio=0.25):
         data set
     scaling: float
         scale the maximum value in the covariance matrix to be this
-        number, genrally <=1
+        number, generally <=1
     trim_ratio: float > 0 and < 1
         this is the ratio of data that we want to drop before looking
         at covariance
@@ -473,7 +476,12 @@ def estimate_covariance(chain, scaling=1, trim_ratio=0.25):
         this is the covariance matrix
     """
 
+    # Drop the initial few data points according to the trim ratio
+
     cutoff = int(trim_ratio * len(chain[:, 0]))
+
+    # Calculate the covariance matrix using the chain
+
     cchn = chain[cutoff:, :]
     cov = np.cov(cchn, y=None, rowvar=False)
 
