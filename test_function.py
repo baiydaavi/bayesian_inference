@@ -594,21 +594,37 @@ def mcmc_lambda_cdm_test():
 
 
 def convergence_test_test():
+
     """
     very simple unit test:
 
-        first, verify failure on a monotonically increasing 2-parameter chain
-        second, we verify sucess on a trivially converged 2-parameter chain that is all 1s
+    First, verify failure on a monotonically increasing 2-parameter chain.
+    Second, we verify sucess on a trivially converged 2-parameter chain 
+    that is all 1s.
     """
+
+    # Verify that the convergence test fails on a monotonically
+    # increasing chain (the chain value increases by 0.1 at each
+    # step. The convergence threshold is 0.01. So, the convergence
+    # test should fail for this case)
+
     convergence_fail = np.zeros((100, 2))
-    convergence_fail[:, 0] = np.linspace(0, 100, 100)
-    convergence_fail[:, 1] = np.linspace(100, 200, 100)
-    convergence_sucess = np.ones((100, 2))
+    convergence_fail[:, 0] = np.linspace(0, 10, 100)
+    convergence_fail[:, 1] = np.linspace(10, 20, 100)
 
-    true_false, _1, _2 = convergence_test(convergence_fail, 30, 0.01)
-    assert true_false is False, "test gave false positive"
+    conv_result, _1, _2 = convergence_test(convergence_fail, 30, 0.01)
 
-    true_false, _1, _2 = convergence_test(convergence_sucess, 30, 0.01)
-    assert true_false is True, "test gave false Negative"
+    assert conv_result is False, "test gave false positive"
 
-    print("convergence_test accurate for all test cases")
+    # Checking convergence on a chain whose values are chosen
+    # from a gaussian centred at 1 with a standard deviation
+    # of 0.001. Since the convergence threshold is set at 0.01
+    # this chain should converge.
+
+    convergence_success = np.random.normal(1, 0.001, (100, 2))
+
+    conv_result, _1, _2 = convergence_test(convergence_success, 30, 0.01)
+
+    assert conv_result is True, "test gave false Negative"
+
+    print("The convergence test functions works well for all the test cases")
