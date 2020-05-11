@@ -507,8 +507,8 @@ def convergence_test_test():
     """
     very simple unit test:
 
-        first, verify failure on a monotonically increasing 1-parameter chain
-        second, we verify sucess on a trivially converged 1-parameter chain that is all 1s
+        first, verify failure on a monotonically increasing 2-parameter chain
+        second, we verify sucess on a trivially converged 2-parameter chain that is all 1s
     """
     convergence_fail = np.zeros((100, 2))
     convergence_fail[:, 0] = np.linspace(0, 100, 100)
