@@ -327,8 +327,8 @@ def metropolis_test():
     Unit test for the metropolis part of the codebase. First, we create simple likelihood (shifted gaussian) and prior(uniform)
     Then, we make a data set where we know the answer by setting the numpy seed=0.
     Using this data set, we first verify that metropolis returns True when the proposed jump is to a higher likelihood region
-    Then, we varify that jumps to lower likelihood region have approximately correct acceptance proportion over 10,000 trials
-    The correct proportion was calibrated to be ~45.5%, but it allows a small region around that, because we are taking finite samples.
+    Then, we varify that jumps to lower likelihood region have approximately correct acceptance proportion over 10,000 trials.
+    We expect over 10,000 trials that the proportions are relaively close to the aymptotic value, so we use a tolerance of 10%
     """
 
     def log_likelihood(data, param):
@@ -352,11 +352,16 @@ def metropolis_test():
     # make sure we have the propoer ratio of jumps to a well known lower likelihood state, over 10000 samples
     test_list = np.zeros(10000)
     np.random.seed()
+
+    asymptotic_acceptance_prob = np.exp(
+        log_likelihood(test_data, 0.9) - log_likelihood(test_data, 1)
+    )
+
     for i in range(len(test_list)):
         test_list[i] = metropolis(1, 0.9, test_data, **kwargs)
 
     ratio = sum(test_list) / len(test_list)
-    assert ratio > 0.42, "rejected too many samples"
-    assert ratio < 0.48, "accepted too many samples"
+    assert ratio > 0.9 * asymptotic_acceptance_prob, "rejected too many samples"
+    assert ratio < 1.1 * asymptotic_acceptance_prob, "accepted too many samples"
 
     return "its an old code, but it checks out"
