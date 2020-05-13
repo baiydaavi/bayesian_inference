@@ -6,8 +6,8 @@ lambda CDM model unit test.
 
 import numpy as np
 import pandas as pd
-import math
 from scipy import integrate
+import math
 
 
 def lambda_cdm_mag(params, redshift_data):

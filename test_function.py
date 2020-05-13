@@ -13,20 +13,17 @@ functions:
 """
 
 import numpy as np
-from prior_likelihood import log_prior
-from prior_likelihood import log_likelihood
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from theoretical_mag import calculate_apparent_mag as mag_model
-from lambda_cdm_functions import lambda_cdm_mag
-from prior_likelihood import log_prior
-from prior_likelihood import log_likelihood
-from lambda_cdm_functions import lambda_cdm_log_likelihood
-from lambda_cdm_functions import lambda_cdm_log_prior
-from core_mcmc_functions import chain
-from core_mcmc_functions import metropolis
-from core_mcmc_functions import convergence_test
+from prior_likelihood import log_prior, log_likelihood
+from lambda_cdm_functions import (
+    lambda_cdm_mag,
+    lambda_cdm_log_likelihood,
+    lambda_cdm_log_prior,
+)
+from core_mcmc_functions import chain, metropolis, convergence_test
 
 
 def test_mag_func_omegaK_is_0():

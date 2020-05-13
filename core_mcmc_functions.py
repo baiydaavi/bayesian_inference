@@ -8,8 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from prior_likelihood import log_prior
-from prior_likelihood import log_likelihood
+from prior_likelihood import log_prior, log_likelihood
 
 
 def metropolis(
