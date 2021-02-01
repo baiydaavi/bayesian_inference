@@ -1,6 +1,6 @@
 
 # Bayesian Inference of Cosmological Parameters and Hubble's Constant
-Final Project for PHY 250 @UC Davis, Spring 2020
+In this project, we will use bayesian inference to estimate the matter density parameter, the dark energy density parameter and the Hubble constant using Supernova luminosity data.
 
 ## Table of contents
 * [Introduction](#introduction)
