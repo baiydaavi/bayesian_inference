@@ -1,5 +1,6 @@
 
 # Bayesian Inference of Cosmological Parameters and Hubble's Constant
+
 In this project, we will use bayesian inference to estimate the matter density parameter, the dark energy density parameter and the Hubble constant using Supernova luminosity data.
 
 ## Table of contents
@@ -9,6 +10,8 @@ In this project, we will use bayesian inference to estimate the matter density p
 * [Authors](#authors)
 
 ## Introduction
+
+This project is done as part of the Data Science for Science course (PHY 250) at UC Davis in Spring 2020. The goal of this project is to use bayesian inference to estimate cosmological parameters using Supernovae luminosity data. More specifically, we estimate the matter density parameter, the dark energy density parameter and the Hubble constant using the $\Lambda$ CDM + $\Omega_K$ model of the universe. We estimate the parameters by inferring posterior probability densities of cosmological parameters from distance vs. redshift data with the use of Markov Chain Monte Carlo. The data used is described in [Scolnic et al. (2018)](https://ui.adsabs.harvard.edu/abs/2018ApJ...859..101S/abstract) and can be found [here](https://github.com/dscolnic/Pantheon/tree/master/Binned_data). 
 
 ## Usage
 
