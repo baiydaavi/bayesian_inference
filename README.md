@@ -30,6 +30,18 @@ lambda_cdm_functions.py contains all the functions needed to run the mcmc chain 
 
 ## Reading
 
+Cosmology:
+
+1. https://phys.libretexts.org/Courses/University_of_California_Davis/UCD%3A_Physics_156_-_A_Cosmology_Workbook/A_Cosmology_Workbook/16%3A_Distance_and_Magnitude
+
+2. https://phys.libretexts.org/Courses/University_of_California_Davis/UCD%3A_Physics_156_-_A_Cosmology_Workbook/A_Cosmology_Workbook/17%3A_Parallax%2C_Cepheid_Variables%2C_Supernovae%2C_and_Distance_Measurement
+
+Monte Carlo Markov Chain:
+
+1. https://machinelearningmastery.com/markov-chain-monte-carlo-for-probability/
+
+2. https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwiVk9ml3MruAhWNvp4KHUP6CkMQFjABegQIAhAC&url=https%3A%2F%2Ftowardsdatascience.com%2Ffrom-scratch-bayesian-inference-markov-chain-monte-carlo-and-metropolis-hastings-in-python-ef21a29e25a&usg=AOvVaw3DPIB2woz5amzOtKgCyhx4
+
 ## Authors
 
 Avinash (aavinash@ucdavis.edu), Kyle (kjray@ucdavis.edu), Pratik (pjgandhi@ucdavis.edu), Sudheer (ssreedhar@ucdavis.edu)
