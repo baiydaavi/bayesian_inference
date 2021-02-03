@@ -30,13 +30,15 @@ lambda_cdm_functions.py contains all the functions needed to run the mcmc chain 
 
 ## Reading
 
-Cosmology:
+Refer to the resources provided below to better your understanding of the cosmological concepts and the bayesian inference model used in this project.
+
+### Cosmology:
 
 1. https://phys.libretexts.org/Courses/University_of_California_Davis/UCD%3A_Physics_156_-_A_Cosmology_Workbook/A_Cosmology_Workbook/16%3A_Distance_and_Magnitude
 
 2. https://phys.libretexts.org/Courses/University_of_California_Davis/UCD%3A_Physics_156_-_A_Cosmology_Workbook/A_Cosmology_Workbook/17%3A_Parallax%2C_Cepheid_Variables%2C_Supernovae%2C_and_Distance_Measurement
 
-Monte Carlo Markov Chain:
+### Monte Carlo Markov Chain:
 
 1. https://machinelearningmastery.com/markov-chain-monte-carlo-for-probability/
 
