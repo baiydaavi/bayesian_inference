@@ -15,18 +15,22 @@ This project is done as part of the Data Science for Science course (PHY 250) at
 
 ## Repository Structure
 
-The presentation.ipynb is our 'assignment'. If you go through and execute the cells in order you will see the requested results
-as well as all of our test functions.
+Here is what each file in the repository contains:
 
-core_mcmc_functions.py contain all the core mcmc chain functions.
+presentation.ipynb - This notebook contains all the top level calls to produce the bayesian inference results and do the testing.
 
-prior_likelihood.py contains the prior and likelihood functions.
+core_mcmc_functions.py - This file contains all the core mcmc chain functions.
 
-theoretical_mag.py contains the apparent magnitude calculator function.
+prior_likelihood.py - This file contains the prior and likelihood functions used during bayesian inference.
 
-test_function.py contains all the test functions.
+theoretical_mag.py - This file contains the apparent magnitude calculator function using the cosmological model.
 
-lambda_cdm_functions.py contains all the functions needed to run the mcmc chain test on the lambda CDM model.
+test_function.py - This file contains all the test functions.
+
+lambda_cdm_functions.py - This file contains all the functions needed to run the mcmc chain test for the Lambda CDM model.
+
+lcparam_DS17f.txt, sys_DS17f.txt - These are the data files.
+
 
 ## Reading
 
